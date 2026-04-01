@@ -206,6 +206,15 @@
       if (stored) {
         API_KEY = stored;
         showChat();
+        try {
+          var saved = localStorage.getItem('claude_conversation');
+          if (saved) {
+            conversation = JSON.parse(saved);
+            for (var i = 0; i < conversation.length; i++) {
+              appendMessage(conversation[i].role, conversation[i].content);
+            }
+          }
+        } catch(e) { conversation = []; }
       }
     }
 
@@ -228,8 +237,13 @@
       document.getElementById('chat-container').style.display = 'block';
     }
 
+    function saveConversation() {
+      try { localStorage.setItem('claude_conversation', JSON.stringify(conversation)); } catch(e) {}
+    }
+
     function clearChat() {
       conversation = [];
+      saveConversation();
       document.getElementById('messages').innerHTML = '';
       setStatus('');
     }
@@ -367,6 +381,7 @@
 
       input.value = '';
       conversation.push({ role: 'user', content: text });
+      saveConversation();
       appendMessage('user', text);
       setStatus('Waiting for Claude...');
 
@@ -394,6 +409,7 @@
             var resp = JSON.parse(xhr.responseText);
             var reply = resp.content[0].text;
             conversation.push({ role: 'assistant', content: reply });
+            saveConversation();
             appendMessage('assistant', reply);
             setStatus('');
           } catch(e) {

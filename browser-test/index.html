@@ -16,14 +16,35 @@
     .info { background: #fff; }
     #run-btn {
       padding: 10px 16px; font-size: 16px; background: #000; color: #fff;
-      border: none; cursor: pointer; margin-bottom: 16px; width: 100%;
+      border: none; cursor: pointer; margin-bottom: 8px; width: 100%;
+    }
+    #share-btn, #copy-btn {
+      padding: 8px 12px; font-size: 14px; background: #fff; color: #000;
+      border: 2px solid #000; cursor: pointer; margin-bottom: 16px; margin-right: 8px;
+      display: inline-block;
+    }
+    #share-btn:hover, #copy-btn:hover { background: #f0f0f0; }
+    #share-btn:disabled, #copy-btn:disabled {
+      opacity: 0.5; cursor: not-allowed;
+    }
+    #status-msg {
+      font-size: 12px; margin-left: 10px; color: #666;
+    }
+    #text-output {
+      display: none;
     }
   </style>
 </head>
 <body>
   <h1>Browser Capability Test</h1>
   <button id="run-btn" onclick="runAll()">Run Tests</button>
+  <div>
+    <button id="copy-btn" onclick="copyToClipboard()" disabled>Copy to Clipboard</button>
+    <button id="share-btn" onclick="shareToDpaste()" disabled>Share to dpaste</button>
+    <span id="status-msg"></span>
+  </div>
   <div id="output"></div>
+  <textarea id="text-output"></textarea>
 
   <script>
     function ok(val) { return { result: 'YES', cls: 'pass', detail: val || '' }; }
@@ -54,7 +75,11 @@
         ['Pixel ratio',     inf(window.devicePixelRatio || 1)],
         ['Language',        inf(navigator.language || 'n/a')],
         ['Cookie enabled',  navigator.cookieEnabled ? ok() : no()],
-        ['Online',          navigator.onLine ? ok() : no()]
+        ['Online',          navigator.onLine ? ok() : no()],
+        ['Memory (GB)',     inf(navigator.deviceMemory || 'n/a')],
+        ['CPU cores',       inf(navigator.hardwareConcurrency || 'n/a')],
+        ['Touch support',   inf(('ontouchstart' in window) || (navigator.maxTouchPoints > 0) ? 'YES' : 'NO')],
+        ['Do Not Track',    inf(navigator.doNotTrack || 'n/a')]
       ];
     }
 
@@ -63,6 +88,7 @@
         ['JSON parse/stringify',  (function(){ try { return JSON.parse('{"a":1}').a === 1 ? ok() : no(); } catch(e){ return no(e); } })()],
         ['localStorage',         (function(){ try { localStorage.setItem('_t','1'); localStorage.removeItem('_t'); return ok(); } catch(e){ return no(e); } })()],
         ['sessionStorage',       (function(){ try { sessionStorage.setItem('_t','1'); sessionStorage.removeItem('_t'); return ok(); } catch(e){ return no(e); } })()],
+        ['IndexedDB',            (function(){ return (typeof indexedDB !== 'undefined') ? ok() : no(); })()],
         ['XMLHttpRequest',       (function(){ return (typeof XMLHttpRequest !== 'undefined') ? ok() : no(); })()],
         ['fetch',                (function(){ return (typeof fetch !== 'undefined') ? ok() : no(); })()],
         ['Promise',              (function(){ return (typeof Promise !== 'undefined') ? ok() : no(); })()],
@@ -76,21 +102,47 @@
         ['ES6 Symbol',           (typeof Symbol !== 'undefined') ? ok() : no()],
         ['ES6 for...of',         tryEval('for(var x of [1]){}') ? ok() : no()],
         ['async/await',          tryEval('(async function(){})()') ? ok() : no()],
+        ['ES2020 BigInt',        (typeof BigInt !== 'undefined') ? ok() : no()],
+        ['ES2020 optional chaining', tryEval('var x={a:1}; x?.a') ? ok() : no()],
+        ['ES2020 nullish coalescing', tryEval('var x=null; x ?? 1') ? ok() : no()],
         ['Web Crypto (subtle)',  (window.crypto && window.crypto.subtle) ? ok() : no()],
         ['Web Crypto (random)',  (window.crypto && window.crypto.getRandomValues) ? ok() : no()],
         ['Blob',                 (typeof Blob !== 'undefined') ? ok() : no()],
+        ['FileReader',           (typeof FileReader !== 'undefined') ? ok() : no()],
+        ['FormData',             (typeof FormData !== 'undefined') ? ok() : no()],
         ['URL constructor',      (function(){ try { new URL('https://example.com'); return ok(); } catch(e){ return no(); } })()],
         ['URLSearchParams',      (typeof URLSearchParams !== 'undefined') ? ok() : no()],
         ['history.pushState',    (typeof history !== 'undefined' && history.pushState) ? ok() : no()],
         ['requestAnimationFrame',(typeof requestAnimationFrame !== 'undefined') ? ok() : no()],
+        ['cancelAnimationFrame', (typeof cancelAnimationFrame !== 'undefined') ? ok() : no()],
         ['MutationObserver',     (typeof MutationObserver !== 'undefined') ? ok() : no()],
         ['IntersectionObserver', (typeof IntersectionObserver !== 'undefined') ? ok() : no()],
+        ['ResizeObserver',       (typeof ResizeObserver !== 'undefined') ? ok() : no()],
         ['DOMParser',            (typeof DOMParser !== 'undefined') ? ok() : no()],
         ['CustomEvent',          (typeof CustomEvent !== 'undefined') ? ok() : no()],
         ['addEventListener',     (typeof document.addEventListener !== 'undefined') ? ok() : no()],
         ['querySelector',        (typeof document.querySelector !== 'undefined') ? ok() : no()],
         ['classList',            (function(){ var d=document.createElement('div'); return (typeof d.classList !== 'undefined') ? ok() : no(); })()],
-        ['dataset',              (function(){ var d=document.createElement('div'); return (typeof d.dataset !== 'undefined') ? ok() : no(); })()]
+        ['dataset',              (function(){ var d=document.createElement('div'); return (typeof d.dataset !== 'undefined') ? ok() : no(); })()],
+        ['Web Workers',          (typeof Worker !== 'undefined') ? ok() : no()],
+        ['Service Workers',      (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) ? ok() : no()],
+        ['WebAssembly',          (typeof WebAssembly !== 'undefined') ? ok() : no()],
+        ['BroadcastChannel',     (typeof BroadcastChannel !== 'undefined') ? ok() : no()],
+        ['Intl API',             (typeof Intl !== 'undefined') ? ok() : no()],
+        ['Notification API',     (typeof Notification !== 'undefined') ? ok() : no()],
+        ['Clipboard API',        (typeof navigator !== 'undefined' && navigator.clipboard) ? ok() : no()],
+        ['Geolocation',          (typeof navigator !== 'undefined' && navigator.geolocation) ? ok() : no()],
+        ['Device Orientation',   (typeof DeviceOrientationEvent !== 'undefined') ? ok() : no()],
+        ['Page Visibility',      (typeof document !== 'undefined' && 'hidden' in document) ? ok() : no()],
+        ['Fullscreen',           (typeof document !== 'undefined' && (document.requestFullscreen || document.webkitRequestFullscreen)) ? ok() : no()],
+        ['ES Modules (dynamic)', tryEval('import("data:text/javascript,export default 1")') ? ok() : no()],
+        ['AbortController',      (typeof AbortController !== 'undefined') ? ok() : no()],
+        ['Proxy',                (typeof Proxy !== 'undefined') ? ok() : no()],
+        ['WeakMap/WeakSet',      (typeof WeakMap !== 'undefined' && typeof WeakSet !== 'undefined') ? ok() : no()],
+        ['matchMedia',           (typeof window !== 'undefined' && window.matchMedia) ? ok() : no()],
+        ['scheduler.yield',      (typeof scheduler !== 'undefined' && scheduler.yield) ? ok() : no()],
+        ['Array.isArray',        (typeof Array.isArray !== 'undefined') ? ok() : no()],
+        ['Object.assign',        (typeof Object.assign !== 'undefined') ? ok() : no()]
       ];
     }
 
@@ -99,18 +151,42 @@
         ['CSS.supports()',        (window.CSS && window.CSS.supports) ? ok() : no()],
         ['Flexbox',               cssSupports('display','flex') ? ok() : no()],
         ['CSS Grid',              cssSupports('display','grid') ? ok() : no()],
+        ['CSS Subgrid',           cssSupports('grid-template-columns','subgrid') ? ok() : no()],
         ['CSS Variables',         cssSupports('--x','0') ? ok() : no()],
         ['CSS calc()',            cssSupports('width','calc(1px + 1px)') ? ok() : no()],
+        ['CSS clamp()',           cssSupports('width','clamp(1px, 2px, 3px)') ? ok() : no()],
+        ['CSS min()/max()',       cssSupports('width','min(1px, 2px)') && cssSupports('width','max(1px, 2px)') ? ok() : no()],
+        ['CSS Container Queries', cssSupports('container-type','inline-size') ? ok() : no()],
+        ['CSS @layer',            (window.CSS && CSS.supports('at-rule', 'layer')) ? ok() : no()],
+        ['CSS nesting',           tryEval('document.createElement("style").textContent = ".a { .b { color: red; } }"') ? ok() : no()],
+        ['CSS :has()',            (window.CSS && CSS.supports('selector(:has(a))')) ? ok() : no()],
+        ['CSS accent-color',      cssSupports('accent-color','red') ? ok() : no()],
+        ['CSS aspect-ratio',      cssSupports('aspect-ratio','1/1') ? ok() : no()],
+        ['CSS backdrop-filter',   cssSupports('backdrop-filter','blur(1px)') ? ok() : no()],
         ['border-radius',         supports('borderRadius') ? ok() : no()],
         ['box-shadow',            supports('boxShadow') ? ok() : no()],
         ['text-shadow',           supports('textShadow') ? ok() : no()],
         ['CSS transitions',       supports('transition') || supports('webkitTransition') ? ok() : no()],
         ['CSS animations',        supports('animation') || supports('webkitAnimation') ? ok() : no()],
         ['CSS transform',         supports('transform') || supports('webkitTransform') ? ok() : no()],
+        ['CSS transform-style',   supports('transformStyle') ? ok() : no()],
+        ['CSS perspective',       supports('perspective') ? ok() : no()],
         ['overflow:scroll',       cssSupports('overflow','scroll') ? ok() : no()],
+        ['overflow:overlay',      cssSupports('overflow','overlay') ? ok() : no()],
         ['position:sticky',       cssSupports('position','sticky') || cssSupports('position','-webkit-sticky') ? ok() : no()],
         ['object-fit',            supports('objectFit') ? ok() : no()],
-        ['resize',                supports('resize') ? ok() : no()]
+        ['resize',                supports('resize') ? ok() : no()],
+        ['CSS scroll-snap',       supports('scrollSnapType') || supports('webkitScrollSnapType') ? ok() : no()],
+        ['CSS overscroll-behavior', supports('overscrollBehavior') ? ok() : no()],
+        ['CSS logical props',     cssSupports('margin-inline','1px') ? ok() : no()],
+        ['CSS gap (flex)',        cssSupports('gap','1px') ? ok() : no()],
+        ['CSS @supports',         (window.CSS && window.CSS.supports) ? ok() : no()],
+        ['CSS @media (hover)',    (window.matchMedia && window.matchMedia('(hover: none)').matches !== undefined) ? ok() : no()],
+        ['CSS color-scheme',     cssSupports('color-scheme','dark') ? ok() : no()],
+        ['CSS :is()',             (window.CSS && CSS.supports('selector(:is(a, b))')) ? ok() : no()],
+        ['CSS :where()',          (window.CSS && CSS.supports('selector(:where(a, b))')) ? ok() : no()],
+        ['CSS @property',         (window.CSS && CSS.supports('at-rule', 'property')) ? ok() : no()],
+        ['CSS view transitions',  (typeof document !== 'undefined' && 'startViewTransition' in document) ? ok() : no()]
       ];
     }
 
@@ -126,37 +202,320 @@
         ['input type=number',     inputType('number')],
         ['input type=range',      inputType('range')],
         ['input type=date',       inputType('date')],
+        ['input type=datetime-local', inputType('datetime-local')],
+        ['input type=month',      inputType('month')],
+        ['input type=week',       inputType('week')],
+        ['input type=time',       inputType('time')],
         ['input type=color',      inputType('color')],
         ['input type=search',     inputType('search')],
         ['input type=email',      inputType('email')],
+        ['input type=tel',        inputType('tel')],
+        ['input type=url',        inputType('url')],
+        ['input type=file',       inputType('file')],
         ['input placeholder',     (function(){ return ('placeholder' in document.createElement('input')) ? ok() : no(); })()],
+        ['input required',        (function(){ return ('required' in document.createElement('input')) ? ok() : no(); })()],
+        ['input pattern',         (function(){ return ('pattern' in document.createElement('input')) ? ok() : no(); })()],
+        ['input multiple',        (function(){ return ('multiple' in document.createElement('input')) ? ok() : no(); })()],
+        ['input autocomplete',    (function(){ return ('autocomplete' in document.createElement('input')) ? ok() : no(); })()],
+        ['input autofocus',       (function(){ return ('autofocus' in document.createElement('input')) ? ok() : no(); })()],
+        ['input min/max/step',    (function(){ return ('min' in document.createElement('input')) ? ok() : no(); })()],
+        ['input checked',         (function(){ return ('checked' in document.createElement('input')) ? ok() : no(); })()],
+        ['input disabled',        (function(){ return ('disabled' in document.createElement('input')) ? ok() : no(); })()],
+        ['input readonly',        (function(){ return ('readOnly' in document.createElement('input')) ? ok() : no(); })()],
         ['textarea',              (function(){ return !!document.createElement('textarea') ? ok() : no(); })()],
+        ['select',                (function(){ return !!document.createElement('select') ? ok() : no(); })()],
+        ['optgroup',              (function(){ return !!document.createElement('optgroup') ? ok() : no(); })()],
+        ['datalist',              (function(){ return !!document.createElement('datalist') ? ok() : no(); })()],
+        ['output',                (function(){ return !!document.createElement('output') ? ok() : no(); })()],
+        ['progress',              (function(){ return !!document.createElement('progress') ? ok() : no(); })()],
+        ['meter',                 (function(){ return !!document.createElement('meter') ? ok() : no(); })()],
         ['<details>/<summary>',   (function(){ return ('open' in document.createElement('details')) ? ok() : no(); })()],
         ['contenteditable',       ('contentEditable' in document.createElement('div')) ? ok() : no()],
         ['<audio>',               (function(){ var a=document.createElement('audio'); return (typeof a.canPlayType === 'function') ? ok() : no(); })()],
-        ['<video>',               (function(){ var v=document.createElement('video'); return (typeof v.canPlayType === 'function') ? ok() : no(); })()]
+        ['<video>',               (function(){ var v=document.createElement('video'); return (typeof v.canPlayType === 'function') ? ok() : no(); })()],
+        ['<canvas>',              (function(){ return !!document.createElement('canvas').getContext ? ok() : no(); })()],
+        ['<canvas> 2D context',   (function(){ var c=document.createElement('canvas'); return !!(c.getContext && c.getContext('2d')) ? ok() : no(); })()],
+        ['WebGL',                 (function(){ var c=document.createElement('canvas'); return !!(c.getContext && (c.getContext('webgl') || c.getContext('experimental-webgl'))) ? ok() : no(); })()],
+        ['WebGL2',                (function(){ var c=document.createElement('canvas'); return !!(c.getContext && c.getContext('webgl2')) ? ok() : no(); })()],
+        ['<dialog>',              (function(){ return !!document.createElement('dialog').showModal ? ok() : no(); })()],
+        ['<template>',            (function(){ return 'content' in document.createElement('template') ? ok() : no(); })()],
+        ['<slot>',                (function(){ return !!document.createElement('slot') ? ok() : no(); })()],
+        ['<picture>',             (function(){ return !!document.createElement('picture') ? ok() : no(); })()],
+        ['<figure>/<figcaption>', (function(){ return !!document.createElement('figure') && !!document.createElement('figcaption') ? ok() : no(); })()],
+        ['<main>',                (function(){ return !!document.createElement('main') ? ok() : no(); })()],
+        ['<article>',             (function(){ return !!document.createElement('article') ? ok() : no(); })()],
+        ['<section>',             (function(){ return !!document.createElement('section') ? ok() : no(); })()],
+        ['<nav>',                 (function(){ return !!document.createElement('nav') ? ok() : no(); })()],
+        ['<aside>',               (function(){ return !!document.createElement('aside') ? ok() : no(); })()],
+        ['<header>',              (function(){ return !!document.createElement('header') ? ok() : no(); })()],
+        ['<footer>',              (function(){ return !!document.createElement('footer') ? ok() : no(); })()],
+        ['<time>',                (function(){ return !!document.createElement('time') ? ok() : no(); })()],
+        ['<mark>',                (function(){ return !!document.createElement('mark') ? ok() : no(); })()],
+        ['Drag and drop',         (function(){ return 'draggable' in document.createElement('div') ? ok() : no(); })()],
+        ['Spellcheck',            (function(){ return 'spellcheck' in document.createElement('div') ? ok() : no(); })()],
+        ['TabIndex',              (function(){ return 'tabIndex' in document.createElement('div') ? ok() : no(); })()],
+        ['AccessKey',             (function(){ return 'accessKey' in document.createElement('div') ? ok() : no(); })()]
       ];
     }
 
+    function mediaTests() {
+      var tests = [];
+      var audio = document.createElement('audio');
+      var video = document.createElement('video');
+      
+      // Audio formats
+      if (typeof audio.canPlayType === 'function') {
+        var canPlay = audio.canPlayType('audio/mpeg');
+        tests.push(['Audio: MP3', canPlay ? ok(canPlay) : no()]);
+        
+        canPlay = audio.canPlayType('audio/wav');
+        tests.push(['Audio: WAV', canPlay ? ok(canPlay) : no()]);
+        
+        canPlay = audio.canPlayType('audio/ogg');
+        tests.push(['Audio: OGG', canPlay ? ok(canPlay) : no()]);
+        
+        canPlay = audio.canPlayType('audio/aac');
+        tests.push(['Audio: AAC', canPlay ? ok(canPlay) : no()]);
+        
+        canPlay = audio.canPlayType('audio/webm');
+        tests.push(['Audio: WebM', canPlay ? ok(canPlay) : no()]);
+        
+        canPlay = audio.canPlayType('audio/flac');
+        tests.push(['Audio: FLAC', canPlay ? ok(canPlay) : no()]);
+      }
+      
+      // Video formats
+      if (typeof video.canPlayType === 'function') {
+        var canPlay = video.canPlayType('video/mp4; codecs="avc1.42E01E"');
+        tests.push(['Video: MP4/H.264', canPlay ? ok(canPlay) : no()]);
+        
+        canPlay = video.canPlayType('video/webm; codecs="vp8"');
+        tests.push(['Video: WebM/VP8', canPlay ? ok(canPlay) : no()]);
+        
+        canPlay = video.canPlayType('video/webm; codecs="vp9"');
+        tests.push(['Video: WebM/VP9', canPlay ? ok(canPlay) : no()]);
+        
+        canPlay = video.canPlayType('video/ogg; codecs="theora"');
+        tests.push(['Video: OGG/Theora', canPlay ? ok(canPlay) : no()]);
+      }
+      
+      // Image formats - test encoding support via canvas
+      var canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      
+      var webpUrl = canvas.toDataURL('image/webp');
+      tests.push(['Image: WebP encode', webpUrl.indexOf('data:image/webp') === 0 ? ok() : no()]);
+      
+      var avifSupported = false;
+      try {
+        var avifUrl = canvas.toDataURL('image/avif');
+        avifSupported = avifUrl.indexOf('data:image/avif') === 0;
+      } catch(e) {
+        avifSupported = false;
+      }
+      tests.push(['Image: AVIF encode', avifSupported ? ok() : no()]);
+      
+      return tests;
+    }
+
     // ---- Render ----
+
+    function escapeHtml(text) {
+      return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
 
     function renderGroup(title, rows) {
       var html = '<h2>' + title + '</h2><table>';
       for (var i = 0; i < rows.length; i++) {
         var name = rows[i][0], r = rows[i][1];
-        html += '<tr><td>' + name + '</td>'
-              + '<td class="' + r.cls + '">' + r.result + (r.detail ? '<br><span style="font-weight:normal;font-size:12px">' + r.detail + '</span>' : '') + '</td></tr>';
+        html += '<tr><td>' + escapeHtml(name) + '</td>'
+              + '<td class="' + r.cls + '">' + r.result + (r.detail ? '<br><span style="font-weight:normal;font-size:12px">' + escapeHtml(r.detail) + '</span>' : '') + '</td></tr>';
       }
       return html + '</table>';
     }
 
+    // Global variable to store test results for sharing
+    var allTestResults = [];
+
+    function generateTextOutput() {
+      var lines = [];
+      lines.push('=====================================');
+      lines.push('Browser Capability Test Results');
+      lines.push('=====================================');
+      lines.push('');
+      
+      for (var i = 0; i < allTestResults.length; i++) {
+        var section = allTestResults[i];
+        lines.push('[' + section.title + ']');
+        for (var j = 0; j < section.rows.length; j++) {
+          var row = section.rows[j];
+          var name = row[0];
+          var r = row[1];
+          var status = r.result;
+          if (r.detail) status += ' (' + r.detail + ')';
+          lines.push('  ' + name + ': ' + status);
+        }
+        lines.push('');
+      }
+      
+      lines.push('=====================================');
+      lines.push('Generated: ' + new Date().toISOString());
+      lines.push('=====================================');
+      
+      return lines.join('\n');
+    }
+
+    function updateTextOutput() {
+      var textOutput = generateTextOutput();
+      document.getElementById('text-output').value = textOutput;
+      // Enable buttons once we have results
+      document.getElementById('copy-btn').disabled = false;
+      document.getElementById('share-btn').disabled = false;
+    }
+
+    function setStatus(msg, isError) {
+      var statusEl = document.getElementById('status-msg');
+      statusEl.textContent = msg;
+      statusEl.style.color = isError ? '#c00' : '#666';
+      if (!isError && msg) {
+        setTimeout(function() { statusEl.textContent = ''; }, 3000);
+      }
+    }
+
+    function copyToClipboard() {
+      var textOutput = document.getElementById('text-output').value;
+      
+      // Try modern Clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textOutput).then(function() {
+          setStatus('Copied to clipboard!');
+        }).catch(function(err) {
+          // Fallback to execCommand
+          fallbackCopy(textOutput);
+        });
+      } else {
+        // Use fallback
+        fallbackCopy(textOutput);
+      }
+    }
+    
+    function fallbackCopy(text) {
+      var textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        var successful = document.execCommand('copy');
+        if (successful) {
+          setStatus('Copied to clipboard!');
+        } else {
+          showTextForManualCopy(text);
+        }
+      } catch (err) {
+        showTextForManualCopy(text);
+      }
+      
+      document.body.removeChild(textArea);
+    }
+    
+    function showTextForManualCopy(text) {
+      var textArea = document.getElementById('text-output');
+      textArea.style.display = 'block';
+      textArea.style.width = '100%';
+      textArea.style.height = '200px';
+      textArea.style.marginTop = '10px';
+      setStatus('Please copy manually from the textarea below', true);
+      textArea.focus();
+      textArea.select();
+    }
+
+    function shareToDpaste() {
+      var textOutput = document.getElementById('text-output').value;
+      var shareBtn = document.getElementById('share-btn');
+      
+      shareBtn.disabled = true;
+      setStatus('Uploading to dpaste...');
+      
+      // dpaste.com API v2 uses multipart/form-data
+      var formData = new FormData();
+      formData.append('content', textOutput);
+      formData.append('syntax', 'text');
+      formData.append('expiry_days', '7');
+      
+      fetch('https://dpaste.com/api/v2/', {
+        method: 'POST',
+        body: formData
+      })
+      .then(function(response) {
+        if (response.status === 201) {
+          // Success - get URL from response body or Location header
+          var location = response.headers.get('Location');
+          return response.text().then(function(bodyUrl) {
+            // dpaste returns URL in body or Location header
+            var url = (bodyUrl || location || '').trim();
+            if (!url) throw new Error('No URL returned from server');
+            return url;
+          });
+        } else {
+          throw new Error('Upload failed: HTTP ' + response.status);
+        }
+      })
+      .then(function(url) {
+        // Copy URL to clipboard
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url);
+        } else {
+          var tempInput = document.createElement('input');
+          tempInput.value = url;
+          document.body.appendChild(tempInput);
+          tempInput.select();
+          document.execCommand('copy');
+          document.body.removeChild(tempInput);
+        }
+        
+        setStatus('Shared! URL copied: ' + url);
+        
+        // Open in new tab
+        window.open(url, '_blank');
+      })
+      .catch(function(error) {
+        setStatus('Share failed: ' + error.message, true);
+      })
+      .finally(function() {
+        shareBtn.disabled = false;
+      });
+    }
+
     function runAll() {
       var out = '';
-      out += renderGroup('Browser Info', browserInfo());
-      out += renderGroup('JavaScript / Web APIs', jsTests());
-      out += renderGroup('CSS', cssTests());
-      out += renderGroup('HTML', htmlTests());
+      allTestResults = [];
+      
+      var browserInfoResults = browserInfo();
+      allTestResults.push({ title: 'Browser Info', rows: browserInfoResults });
+      out += renderGroup('Browser Info', browserInfoResults);
+      
+      var jsResults = jsTests();
+      allTestResults.push({ title: 'JavaScript / Web APIs', rows: jsResults });
+      out += renderGroup('JavaScript / Web APIs', jsResults);
+      
+      var cssResults = cssTests();
+      allTestResults.push({ title: 'CSS', rows: cssResults });
+      out += renderGroup('CSS', cssResults);
+      
+      var htmlResults = htmlTests();
+      allTestResults.push({ title: 'HTML', rows: htmlResults });
+      out += renderGroup('HTML', htmlResults);
+      
+      var mediaResults = mediaTests();
+      allTestResults.push({ title: 'Media / Formats', rows: mediaResults });
+      out += renderGroup('Media / Formats', mediaResults);
+      
       document.getElementById('output').innerHTML = out;
+      updateTextOutput();
     }
 
     // Run automatically on load

@@ -171,6 +171,14 @@
     <p class="setup-note">Your key is stored only in this browser's local storage and sent directly to Anthropic.</p>
     <br>
     <button class="btn-primary" onclick="saveApiKey()">Save &amp; Start Chatting</button>
+
+    <hr style="margin:16px 0; border:none; border-top:1px solid #ccc;">
+
+    <label for="dpaste-input">Or load key from dpaste:</label>
+    <p class="setup-note" style="margin-bottom:8px;">Paste your API key on <a href="https://dpaste.com" target="_blank">dpaste.com</a> from another device, then enter the ID or URL here.</p>
+    <input type="text" id="dpaste-input" placeholder="AB1CD2EF or https://dpaste.com/AB1CD2EF" autocomplete="off" style="width:100%;padding:8px;font-size:16px;border:1px solid #000;margin-bottom:8px;">
+    <div id="dpaste-status" style="font-size:14px;font-style:italic;min-height:18px;margin-bottom:6px;"></div>
+    <button class="btn-secondary" onclick="loadFromDpaste()">Load Key from dpaste</button>
   </div>
 
   <div id="chat-container">

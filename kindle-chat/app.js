@@ -10,12 +10,67 @@ function saveConversation() {
   try { localStorage.setItem('claude_conversation', JSON.stringify(conversation)); } catch(e) {}
 }
 
+// Validates key against the API, then saves and opens chat on success.
+// statusEl receives progress/error text; btn is disabled during the check.
+function applyValidatedKey(key, statusEl, btn) {
+  statusEl.textContent = 'Validating key...';
+  btn.disabled = true;
+  validateApiKey(key,
+    function() {
+      btn.disabled = false;
+      API_KEY = key;
+      try { localStorage.setItem('claude_api_key', key); } catch(e) {}
+      statusEl.textContent = '';
+      showChat();
+    },
+    function(errMsg) {
+      btn.disabled = false;
+      statusEl.textContent = errMsg;
+    }
+  );
+}
+
+function loadFromDpaste() {
+  var raw = document.getElementById('dpaste-input').value.trim();
+  if (!raw) { alert('Please enter a dpaste ID or URL.'); return; }
+
+  // Accept full URL or bare ID
+  var id = raw.replace(/^https?:\/\/dpaste\.com\//i, '').replace(/\.txt$/i, '').replace(/\/$/, '');
+  if (!id) { alert('Could not parse dpaste ID.'); return; }
+
+  var statusEl = document.getElementById('dpaste-status');
+  var btn = document.getElementById('dpaste-btn');
+  statusEl.textContent = 'Fetching paste...';
+  btn.disabled = true;
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', 'https://dpaste.com/' + id + '.txt', true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) return;
+    if (xhr.status === 200) {
+      var key = xhr.responseText.trim();
+      if (!key) { btn.disabled = false; statusEl.textContent = 'Paste was empty.'; return; }
+      document.getElementById('dpaste-input').value = '';
+      applyValidatedKey(key, statusEl, btn);
+    } else {
+      btn.disabled = false;
+      statusEl.textContent = 'Could not load paste (status ' + xhr.status + '). Check the ID.';
+    }
+  };
+  xhr.onerror = function() {
+    btn.disabled = false;
+    statusEl.textContent = 'Network error. Check your connection.';
+  };
+  xhr.send();
+}
+
 function saveApiKey() {
   var key = document.getElementById('api-key-input').value.trim();
   if (!key) { alert('Please enter an API key.'); return; }
-  API_KEY = key;
-  try { localStorage.setItem('claude_api_key', key); } catch(e) {}
-  showChat();
+  applyValidatedKey(key,
+    document.getElementById('key-status'),
+    document.getElementById('save-key-btn')
+  );
 }
 
 function changeKey() {

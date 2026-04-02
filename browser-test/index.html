@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browser Capability Test</title>
+  <style>
+    body { font-family: monospace; font-size: 14px; padding: 10px; background: #fff; color: #000; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    h2 { font-size: 15px; margin: 16px 0 6px; border-bottom: 1px solid #000; padding-bottom: 2px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
+    td { padding: 4px 6px; border: 1px solid #ccc; vertical-align: top; word-break: break-all; }
+    td:first-child { width: 55%; font-weight: bold; }
+    .pass { background: #d4edda; }
+    .fail { background: #f8d7da; }
+    .info { background: #fff; }
+    #run-btn {
+      padding: 10px 16px; font-size: 16px; background: #000; color: #fff;
+      border: none; cursor: pointer; margin-bottom: 16px; width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h1>Browser Capability Test</h1>
+  <button id="run-btn" onclick="runAll()">Run Tests</button>
+  <div id="output"></div>
+
+  <script>
+    function ok(val) { return { result: 'YES', cls: 'pass', detail: val || '' }; }
+    function no(val) { return { result: 'NO',  cls: 'fail', detail: val || '' }; }
+    function inf(val){ return { result: val,   cls: 'info', detail: '' }; }
+
+    function tryEval(code) {
+      try { eval(code); return true; } catch(e) { return false; }
+    }
+
+    function supports(prop) {
+      return (prop in document.createElement('div').style);
+    }
+
+    function cssSupports(prop, val) {
+      if (window.CSS && window.CSS.supports) return window.CSS.supports(prop, val);
+      return supports(prop.replace(/-([a-z])/g, function(m, l){ return l.toUpperCase(); }));
+    }
+
+    // ---- Test groups ----
+
+    function browserInfo() {
+      return [
+        ['User Agent',      inf(navigator.userAgent)],
+        ['Platform',        inf(navigator.platform || 'n/a')],
+        ['Screen',          inf(screen.width + ' x ' + screen.height)],
+        ['Window',          inf(window.innerWidth + ' x ' + window.innerHeight)],
+        ['Pixel ratio',     inf(window.devicePixelRatio || 1)],
+        ['Language',        inf(navigator.language || 'n/a')],
+        ['Cookie enabled',  navigator.cookieEnabled ? ok() : no()],
+        ['Online',          navigator.onLine ? ok() : no()]
+      ];
+    }
+
+    function jsTests() {
+      return [
+        ['JSON parse/stringify',  (function(){ try { return JSON.parse('{"a":1}').a === 1 ? ok() : no(); } catch(e){ return no(e); } })()],
+        ['localStorage',         (function(){ try { localStorage.setItem('_t','1'); localStorage.removeItem('_t'); return ok(); } catch(e){ return no(e); } })()],
+        ['sessionStorage',       (function(){ try { sessionStorage.setItem('_t','1'); sessionStorage.removeItem('_t'); return ok(); } catch(e){ return no(e); } })()],
+        ['XMLHttpRequest',       (function(){ return (typeof XMLHttpRequest !== 'undefined') ? ok() : no(); })()],
+        ['fetch',                (function(){ return (typeof fetch !== 'undefined') ? ok() : no(); })()],
+        ['Promise',              (function(){ return (typeof Promise !== 'undefined') ? ok() : no(); })()],
+        ['ES6 let/const',        tryEval('"use strict"; (function(){ const x=1; let y=2; })()') ? ok() : no()],
+        ['ES6 arrow functions',  tryEval('(()=>{})()') ? ok() : no()],
+        ['ES6 template literals',tryEval('`x${1}`') ? ok() : no()],
+        ['ES6 destructuring',    tryEval('var [a,b]=[1,2]; var {c}={c:3};') ? ok() : no()],
+        ['ES6 default params',   tryEval('(function(a=1){})()') ? ok() : no()],
+        ['ES6 spread',           tryEval('var a=[1]; var b=[...a];') ? ok() : no()],
+        ['ES6 Map/Set',          (typeof Map !== 'undefined' && typeof Set !== 'undefined') ? ok() : no()],
+        ['ES6 Symbol',           (typeof Symbol !== 'undefined') ? ok() : no()],
+        ['ES6 for...of',         tryEval('for(var x of [1]){}') ? ok() : no()],
+        ['async/await',          tryEval('(async function(){})()') ? ok() : no()],
+        ['Web Crypto (subtle)',  (window.crypto && window.crypto.subtle) ? ok() : no()],
+        ['Web Crypto (random)',  (window.crypto && window.crypto.getRandomValues) ? ok() : no()],
+        ['Blob',                 (typeof Blob !== 'undefined') ? ok() : no()],
+        ['URL constructor',      (function(){ try { new URL('https://example.com'); return ok(); } catch(e){ return no(); } })()],
+        ['URLSearchParams',      (typeof URLSearchParams !== 'undefined') ? ok() : no()],
+        ['history.pushState',    (typeof history !== 'undefined' && history.pushState) ? ok() : no()],
+        ['requestAnimationFrame',(typeof requestAnimationFrame !== 'undefined') ? ok() : no()],
+        ['MutationObserver',     (typeof MutationObserver !== 'undefined') ? ok() : no()],
+        ['IntersectionObserver', (typeof IntersectionObserver !== 'undefined') ? ok() : no()],
+        ['DOMParser',            (typeof DOMParser !== 'undefined') ? ok() : no()],
+        ['CustomEvent',          (typeof CustomEvent !== 'undefined') ? ok() : no()],
+        ['addEventListener',     (typeof document.addEventListener !== 'undefined') ? ok() : no()],
+        ['querySelector',        (typeof document.querySelector !== 'undefined') ? ok() : no()],
+        ['classList',            (function(){ var d=document.createElement('div'); return (typeof d.classList !== 'undefined') ? ok() : no(); })()],
+        ['dataset',              (function(){ var d=document.createElement('div'); return (typeof d.dataset !== 'undefined') ? ok() : no(); })()]
+      ];
+    }
+
+    function cssTests() {
+      return [
+        ['CSS.supports()',        (window.CSS && window.CSS.supports) ? ok() : no()],
+        ['Flexbox',               cssSupports('display','flex') ? ok() : no()],
+        ['CSS Grid',              cssSupports('display','grid') ? ok() : no()],
+        ['CSS Variables',         cssSupports('--x','0') ? ok() : no()],
+        ['CSS calc()',            cssSupports('width','calc(1px + 1px)') ? ok() : no()],
+        ['border-radius',         supports('borderRadius') ? ok() : no()],
+        ['box-shadow',            supports('boxShadow') ? ok() : no()],
+        ['text-shadow',           supports('textShadow') ? ok() : no()],
+        ['CSS transitions',       supports('transition') || supports('webkitTransition') ? ok() : no()],
+        ['CSS animations',        supports('animation') || supports('webkitAnimation') ? ok() : no()],
+        ['CSS transform',         supports('transform') || supports('webkitTransform') ? ok() : no()],
+        ['overflow:scroll',       cssSupports('overflow','scroll') ? ok() : no()],
+        ['position:sticky',       cssSupports('position','sticky') || cssSupports('position','-webkit-sticky') ? ok() : no()],
+        ['object-fit',            supports('objectFit') ? ok() : no()],
+        ['resize',                supports('resize') ? ok() : no()]
+      ];
+    }
+
+    function htmlTests() {
+      function inputType(t) {
+        var i = document.createElement('input');
+        i.setAttribute('type', t);
+        return i.type === t ? ok() : no('falls back to text');
+      }
+      return [
+        ['input type=text',       inputType('text')],
+        ['input type=password',   inputType('password')],
+        ['input type=number',     inputType('number')],
+        ['input type=range',      inputType('range')],
+        ['input type=date',       inputType('date')],
+        ['input type=color',      inputType('color')],
+        ['input type=search',     inputType('search')],
+        ['input type=email',      inputType('email')],
+        ['input placeholder',     (function(){ return ('placeholder' in document.createElement('input')) ? ok() : no(); })()],
+        ['textarea',              (function(){ return !!document.createElement('textarea') ? ok() : no(); })()],
+        ['<details>/<summary>',   (function(){ return ('open' in document.createElement('details')) ? ok() : no(); })()],
+        ['contenteditable',       ('contentEditable' in document.createElement('div')) ? ok() : no()],
+        ['<audio>',               (function(){ var a=document.createElement('audio'); return (typeof a.canPlayType === 'function') ? ok() : no(); })()],
+        ['<video>',               (function(){ var v=document.createElement('video'); return (typeof v.canPlayType === 'function') ? ok() : no(); })()]
+      ];
+    }
+
+    // ---- Render ----
+
+    function renderGroup(title, rows) {
+      var html = '<h2>' + title + '</h2><table>';
+      for (var i = 0; i < rows.length; i++) {
+        var name = rows[i][0], r = rows[i][1];
+        html += '<tr><td>' + name + '</td>'
+              + '<td class="' + r.cls + '">' + r.result + (r.detail ? '<br><span style="font-weight:normal;font-size:12px">' + r.detail + '</span>' : '') + '</td></tr>';
+      }
+      return html + '</table>';
+    }
+
+    function runAll() {
+      var out = '';
+      out += renderGroup('Browser Info', browserInfo());
+      out += renderGroup('JavaScript / Web APIs', jsTests());
+      out += renderGroup('CSS', cssTests());
+      out += renderGroup('HTML', htmlTests());
+      document.getElementById('output').innerHTML = out;
+    }
+
+    // Run automatically on load
+    document.addEventListener('DOMContentLoaded', runAll);
+  </script>
+</body>
+</html>

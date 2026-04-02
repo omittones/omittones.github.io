@@ -1,24 +1,20 @@
 interface FooterProps {
   onClearChat: () => void;
   onToggleAbout: () => void;
-  onToggleControls: () => void;
-  hideControls: boolean;
+  onLogout: () => void;
 }
 
-export function Footer({ onClearChat, onToggleAbout, onToggleControls, hideControls }: FooterProps) {
+export function Footer({ onClearChat, onToggleAbout, onLogout }: FooterProps) {
   return (
     <div className="footer">
-      <button className="toggle-button" onClick={onToggleControls}>
-        <span className="up-caret">&#8743;</span>
-        <span className="down-caret">&#8744;</span>
-      </button>
-
       <button className="footer-button" onClick={onToggleAbout}>
         About
       </button>
-
       <button className="footer-button" onClick={onClearChat}>
         Clear chat
+      </button>
+      <button className="footer-button" onClick={onLogout}>
+        Logout
       </button>
     </div>
   );

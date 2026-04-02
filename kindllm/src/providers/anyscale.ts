@@ -33,7 +33,7 @@ export const anyscaleProvider: LLMProvider = {
     var systemPrompt = {
       role: "system",
       content:
-        "You are a helpful assistant on a a Kindle e-reader, called Kindllm. You get straight to the point with a short answer and a pleasant demeanor.",
+        "You are a helpful assistant on a Kindle e-reader, called KindLLM2. You get straight to the point with a short answer and a pleasant demeanor.",
     };
 
     var messageHistory = [];

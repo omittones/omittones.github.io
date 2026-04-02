@@ -1,4 +1,4 @@
-/* Kindllm Static Styles - ES5 compatible, Kindle-optimized */
+/* KindLLM2 Static Styles - ES5 compatible, Kindle-optimized */
 
 * {
   box-sizing: border-box;
@@ -27,27 +27,6 @@ button:active {
   background-color: #aaa;
 }
 
-/* Toggle button carets */
-.toggle-button .up-caret {
-  display: block;
-}
-
-.toggle-button .down-caret {
-  display: none;
-}
-
-.hide-controls .toggle-button .up-caret {
-  display: none;
-}
-
-.hide-controls .toggle-button .down-caret {
-  display: block;
-}
-
-.hide-controls .suggestions-container {
-  display: none;
-}
-
 /* Chat box container */
 .chat-box-container {
   display: flex;
@@ -55,22 +34,14 @@ button:active {
   width: 100%;
 }
 
-.hide-controls .chat-box-container {
-  display: none;
-}
-
 /* Messages container */
 .messages-container {
-  height: 48%;
+  flex: 1;
   overflow-y: auto;
   padding: 1rem;
   width: 100%;
   display: flex;
   flex-direction: column;
-}
-
-.hide-controls .messages-container {
-  height: calc(100vh - 87.5px);
 }
 
 /* API Key input styles */
@@ -106,12 +77,15 @@ button:active {
   height: 100%;
 }
 
-.message-user {
+.message-user,
+.message-assistant {
+  white-space: pre-wrap;
   margin-bottom: 1rem;
 }
 
 .message-assistant {
-  margin-bottom: 1rem;
+  border-left: 0.4rem solid #F0F0F0;
+  padding-left: 0.75rem;
 }
 
 /* Suggestions */
@@ -146,17 +120,12 @@ button:active {
 
 /* Footer */
 .footer {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  left: 0;
-  text-align: right;
-  padding: 1rem;
-  background: #fff;
+  text-align: center;
+  padding: 1rem 1rem 2rem 1rem;
 }
 
 .footer-button {
-  margin-left: 0.5rem;
+  margin: 0 0.25rem;
   border: 1px solid #ddd;
   padding: 1rem 2rem;
   border-radius: 10rem;
@@ -164,18 +133,6 @@ button:active {
   background-color: #fff;
   cursor: pointer;
   min-height: 44px;
-}
-
-.toggle-button {
-  position: absolute;
-  left: 1rem;
-  width: 55px;
-  height: 55px;
-  border: 1px solid #ddd;
-  border-radius: 20rem;
-  font-size: 1rem;
-  background-color: #fff;
-  cursor: pointer;
 }
 
 /* Chat input */

@@ -5,7 +5,7 @@ import { Logo } from "./Logo";
 import { About } from "./About";
 import { Message } from "./Message";
 import { Message as MessageType } from "../storage";
-import { AVAILABLE_MODELS, DEFAULT_MODEL, ModelConfig } from "../providers";
+import { AVAILABLE_MODELS, DEFAULT_MODEL } from "../providers";
 
 interface ChatViewProps {
   messages: MessageType[];
@@ -14,7 +14,6 @@ interface ChatViewProps {
   isLoadingSuggestions: boolean;
   apiKey: string;
   showAbout: boolean;
-  hideControls: boolean;
   dpasteError: string | null;
   isLoadingDpaste: boolean;
   selectedModel: string;
@@ -26,7 +25,7 @@ interface ChatViewProps {
   onClearChat: () => void;
   onToggleAbout: () => void;
   onCloseAbout: () => void;
-  onToggleControls: () => void;
+  onReset: () => void;
   onRetrySuggestions: () => void;
 }
 
@@ -37,7 +36,6 @@ export function ChatView({
   isLoadingSuggestions,
   apiKey,
   showAbout,
-  hideControls,
   dpasteError,
   isLoadingDpaste,
   selectedModel,
@@ -49,7 +47,7 @@ export function ChatView({
   onClearChat,
   onToggleAbout,
   onCloseAbout,
-  onToggleControls,
+  onReset: onLogout,
   onRetrySuggestions,
 }: ChatViewProps) {
   var messagesEndRef = useRef<HTMLDivElement>(null);
@@ -96,7 +94,7 @@ export function ChatView({
     return (
       <div style={{ padding: "2rem", textAlign: "center" }}>
         <Logo />
-        <h1>Kindllm</h1>
+        <h1>KindLLM2</h1>
 
         {/* Manual API key entry */}
         <form onSubmit={handleApiKeySubmit} className="api-key-container">
@@ -149,11 +147,6 @@ export function ChatView({
     );
   }
 
-  var containerClass = "chat-container";
-  if (hideControls) {
-    containerClass += " hide-controls";
-  }
-
   // Get selected model info
   var currentModel = AVAILABLE_MODELS.find(function (m) {
     return m.id === selectedModel;
@@ -174,7 +167,7 @@ export function ChatView({
   );
 
   return (
-    <div className={containerClass}>
+    <div className="chat-container">
       <div className="messages-container">
         <div style={{ margin: "0 auto" }}>
           <Logo />
@@ -185,7 +178,7 @@ export function ChatView({
             textAlign: "center",
           }}
         >
-          Kindllm
+          KindLLM2
         </h2>
 
         {/* Model selector */}
@@ -253,10 +246,9 @@ export function ChatView({
           {messages.map(function (message, index) {
             return <Message key={index} message={message} />;
           })}
-          <div ref={messagesEndRef} />
         </div>
+        <div ref={messagesEndRef} />
       </div>
-
       <ChatBox
         onSendMessage={onSendMessage}
         suggestions={suggestions}
@@ -265,14 +257,11 @@ export function ChatView({
         isLoading={isLoading}
         isLoadingSuggestions={isLoadingSuggestions}
       />
-
       <Footer
         onClearChat={onClearChat}
         onToggleAbout={onToggleAbout}
-        onToggleControls={onToggleControls}
-        hideControls={hideControls}
+        onLogout={onLogout}
       />
-
       {showAbout && <About onClose={onCloseAbout} />}
     </div>
   );

@@ -1,7 +1,7 @@
 export function PrivacyView() {
   return (
     <div className="privacy-container">
-      <h2>Kindllm Privacy</h2>
+      <h2>KindLLM2 Privacy</h2>
       <p>
         We do not store any of your messages on our servers. Messages are sent
         directly to Anyscale Endpoints for processing. Your API key and message

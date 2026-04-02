@@ -57,12 +57,12 @@ export function ChatBox({
           <span className="send-text">Send</span>
         </button>
       </div>
-      <Suggestions
+      {/* <Suggestions
         suggestions={suggestions}
         onSuggestionClick={onSuggestionClick}
         onRetry={onRetrySuggestions}
         isLoading={isLoadingSuggestions}
-      />
+      /> */}
     </form>
   );
 }

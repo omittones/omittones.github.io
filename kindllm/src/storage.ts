@@ -1,8 +1,9 @@
 // Storage utility for localStorage persistence
 // Uses ES5 compatible syntax (no optional chaining or nullish coalescing)
 
-const STORAGE_KEY_API_KEY = "kindllm_api_key";
-const STORAGE_KEY_MESSAGES = "kindllm_messages";
+const STORAGE_KEY_API_KEY = "kindllm2_api_key";
+const STORAGE_KEY_MESSAGES = "kindllm2_messages";
+const STORAGE_KEY_MODEL = "kindllm2_model";
 
 export interface Message {
   role: "user" | "assistant";
@@ -55,4 +56,28 @@ export function clearMessages(): void {
     return;
   }
   localStorage.removeItem(STORAGE_KEY_MESSAGES);
+}
+
+export function getSelectedModel(): string {
+  if (typeof localStorage === "undefined") {
+    return "";
+  }
+  var stored = localStorage.getItem(STORAGE_KEY_MODEL);
+  return stored || "";
+}
+
+export function setSelectedModel(modelId: string): void {
+  if (typeof localStorage === "undefined") {
+    return;
+  }
+  localStorage.setItem(STORAGE_KEY_MODEL, modelId);
+}
+
+export function clearAll(): void {
+  if (typeof localStorage === "undefined") {
+    return;
+  }
+  localStorage.removeItem(STORAGE_KEY_API_KEY);
+  localStorage.removeItem(STORAGE_KEY_MESSAGES);
+  localStorage.removeItem(STORAGE_KEY_MODEL);
 }

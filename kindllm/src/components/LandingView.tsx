@@ -10,10 +10,10 @@ export function LandingView({ onEnterChat }: LandingViewProps) {
       <div className="landing-container">
         <Logo />
 
-        <h1 className="landing-title">Kindllm</h1>
+        <h1 className="landing-title">KindLLM2</h1>
         <p className="landing-text">
           A distraction-free LLM chat web app optimized for Kindle. The perfect
-          companion for your book. Powered by Mixtral from Mistral AI. Mainly
+          companion for your book. Powered by Anthropic Claude. Mainly
           tested on Kindle Paperwhites.
         </p>
 
@@ -48,7 +48,7 @@ export function LandingView({ onEnterChat }: LandingViewProps) {
             }}
             href="https://github.com/andersrex/kindllm"
           >
-            View on GitHub
+            Based on kindllm
           </a>
         </p>
 
@@ -63,7 +63,13 @@ export function LandingView({ onEnterChat }: LandingViewProps) {
           and it now seems to be good enough to run simple interactive apps like
           this!
         </p>
-        <p>Get in touch if you have any questions! kindllm@fastmail.com</p>
+        <p>
+          Based on{" "}
+          <a style={{ color: "black" }} href="https://github.com/andersrex/kindllm">
+            kindllm
+          </a>{" "}
+          by andersrex
+        </p>
       </div>
 
       <footer

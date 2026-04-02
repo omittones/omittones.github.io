@@ -5,14 +5,10 @@ interface MessageProps {
 }
 
 export function Message({ message }: MessageProps) {
+  var isAssistant = message.role === "assistant";
   return (
-    <p
-      style={{
-        whiteSpace: "pre-wrap",
-        marginBottom: "1rem",
-      }}
-    >
-      <b>{message.role === "assistant" ? "Kindllm" : "User"}</b>: {message.content}
+    <p className={isAssistant ? "message-assistant" : "message-user"}>
+      {message.content}
     </p>
   );
 }

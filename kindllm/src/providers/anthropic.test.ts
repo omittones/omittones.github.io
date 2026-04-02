@@ -63,7 +63,7 @@ describe("anthropic provider", function () {
       expect(body.messages).toHaveLength(1);
       expect(body.messages[0].role).toBe("user");
       expect(body.messages[0].content).toBe("Hi");
-      expect(body.system).toContain("Kindllm");
+      expect(body.system).toContain("KindLLM2");
     });
 
     it("should include message history in request", async function () {

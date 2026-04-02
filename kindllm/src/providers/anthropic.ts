@@ -44,7 +44,7 @@ export const anthropicProvider: LLMProvider = {
     newMessage: string
   ): Promise<string> {
     var systemPrompt =
-      "You are a helpful assistant on a Kindle e-reader, called Kindllm. You get straight to the point with a short answer and a pleasant demeanor.";
+      "You are a helpful assistant on a Kindle e-reader, called KindLLM2. You get straight to the point with a short answer and a pleasant demeanor.";
 
     // Build message history (Anthropic format)
     var messageHistory: AnthropicMessage[] = [];
@@ -79,6 +79,7 @@ export const anthropicProvider: LLMProvider = {
         "Content-Type": "application/json",
         "x-api-key": apiKey,
         "anthropic-version": API_VERSION,
+        "anthropic-dangerous-direct-browser-access": "true",
       },
       body: JSON.stringify(requestBody),
     });
@@ -148,6 +149,7 @@ export const anthropicProvider: LLMProvider = {
         "Content-Type": "application/json",
         "x-api-key": apiKey,
         "anthropic-version": API_VERSION,
+        "anthropic-dangerous-direct-browser-access": "true",
       },
       body: JSON.stringify(requestBody),
     });

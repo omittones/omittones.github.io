@@ -2,55 +2,54 @@ import { useState, useEffect, useCallback } from "preact/hooks";
 import { ChatView } from "./components/ChatView";
 import { LandingView } from "./components/LandingView";
 import { PrivacyView } from "./components/Privacy";
-import { Message, getApiKey, setApiKey, getMessages, setMessages, clearMessages } from "./storage";
-import { getNextMessage, getSuggestions } from "./llm";
+import {
+  Message,
+  getApiKey,
+  setApiKey,
+  getMessages,
+  setMessages,
+  clearMessages,
+  clearAll,
+  getSelectedModel,
+  setSelectedModel as persistSelectedModel,
+} from "./storage";
+import { getNextMessage, getSuggestions, DEFAULT_MODEL, getModelById } from "./llm";
 import { fetchApiKeyFromDpaste } from "./dpaste";
 
 type View = "landing" | "chat" | "privacy";
 
+function getInitialView(): View {
+  var path = window.location.pathname;
+  var hash = window.location.hash;
+  if (path.indexOf("privacy") !== -1 || hash === "#privacy") {
+    return "privacy";
+  }
+  var userAgent = navigator.userAgent;
+  var isKindle = userAgent.indexOf("Kindle/3.0+") !== -1 || userAgent.indexOf("Kindle") !== -1;
+  if (isKindle || getApiKey()) {
+    return "chat";
+  }
+  return "landing";
+}
+
 export function App() {
-  // State
-  var [view, setView] = useState<View>("landing");
-  var [apiKey, setApiKeyState] = useState<string>("");
-  var [messages, setMessagesState] = useState<Message[]>([]);
+  // State — initial values read synchronously from localStorage to avoid flicker
+  var [view, setView] = useState<View>(getInitialView);
+  var [apiKey, setApiKeyState] = useState<string>(getApiKey);
+  var [messages, setMessagesState] = useState<Message[]>(getMessages);
   var [isLoading, setIsLoading] = useState<boolean>(false);
   var [suggestions, setSuggestions] = useState<string[]>([]);
   var [isLoadingSuggestions, setIsLoadingSuggestions] = useState<boolean>(false);
   var [showAbout, setShowAbout] = useState<boolean>(false);
-  var [hideControls, setHideControls] = useState<boolean>(false);
   var [dpasteError, setDpasteError] = useState<string | null>(null);
   var [isLoadingDpaste, setIsLoadingDpaste] = useState<boolean>(false);
-
-  // Load API key from storage on mount
-  useEffect(function () {
-    var storedApiKey = getApiKey();
-    if (storedApiKey) {
-      setApiKeyState(storedApiKey);
+  var [selectedModel, setSelectedModelState] = useState<string>(function () {
+    var stored = getSelectedModel();
+    if (stored && getModelById(stored)) {
+      return stored;
     }
-    var storedMessages = getMessages();
-    if (storedMessages && storedMessages.length > 0) {
-      setMessagesState(storedMessages);
-    }
-  }, []);
-
-  // Check for Kindle user agent and current page
-  useEffect(function () {
-    var userAgent = navigator.userAgent;
-    var isKindle = userAgent.indexOf("Kindle/3.0+") !== -1 || userAgent.indexOf("Kindle") !== -1;
-    var path = window.location.pathname;
-    var hash = window.location.hash;
-
-    // Check if on privacy page
-    if (path.indexOf("privacy") !== -1 || hash === "#privacy") {
-      setView("privacy");
-      return;
-    }
-
-    // Default to chat view if on Kindle, otherwise landing
-    if (isKindle) {
-      setView("chat");
-    }
-  }, []);
+    return DEFAULT_MODEL.id;
+  });
 
   // Handle hash-based routing for privacy page
   useEffect(function () {
@@ -59,17 +58,16 @@ export function App() {
       if (hash === "#privacy") {
         setView("privacy");
       } else if (hash === "" || hash === "#") {
-        var userAgent = navigator.userAgent;
-        var isKindle = userAgent.indexOf("Kindle/3.0+") !== -1 || userAgent.indexOf("Kindle") !== -1;
-        if (isKindle) {
+        if (getApiKey()) {
           setView("chat");
         } else {
-          setView("landing");
+          var userAgent = navigator.userAgent;
+          var isKindle = userAgent.indexOf("Kindle/3.0+") !== -1 || userAgent.indexOf("Kindle") !== -1;
+          setView(isKindle ? "chat" : "landing");
         }
       }
     }
 
-    handleHashChange();
     window.addEventListener("hashchange", handleHashChange);
     return function () {
       window.removeEventListener("hashchange", handleHashChange);
@@ -97,7 +95,7 @@ export function App() {
     setMessages(updatedMessages);
 
     try {
-      var response = await getNextMessage(apiKey, messages, messageText);
+      var response = await getNextMessage(apiKey, selectedModel, messages, messageText);
       var assistantMessage: Message = { role: "assistant", content: response };
       var finalMessages = [...updatedMessages, assistantMessage];
       setMessagesState(finalMessages);
@@ -106,7 +104,7 @@ export function App() {
       // Get suggestions after receiving response
       setIsLoadingSuggestions(true);
       try {
-        var newSuggestions = await getSuggestions(apiKey, finalMessages);
+        var newSuggestions = await getSuggestions(apiKey, selectedModel, finalMessages);
         setSuggestions(newSuggestions.slice(0, 3));
       } catch (e) {
         setSuggestions([]);
@@ -124,7 +122,7 @@ export function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [apiKey, messages]);
+  }, [apiKey, messages, selectedModel]);
 
   // Handle suggestion click
   var handleSuggestionClick = useCallback(function (suggestion: string) {
@@ -148,10 +146,16 @@ export function App() {
     setShowAbout(false);
   }, []);
 
-  // Toggle controls visibility
-  var handleToggleControls = useCallback(function () {
-    setHideControls(!hideControls);
-  }, [hideControls]);
+  // Reset everything and go back to landing
+  var handleReset = useCallback(function () {
+    clearAll();
+    setApiKeyState("");
+    setMessagesState([]);
+    setSuggestions([]);
+    setSelectedModelState(DEFAULT_MODEL.id);
+    setShowAbout(false);
+    setView("landing");
+  }, []);
 
   // Retry getting suggestions
   var handleRetrySuggestions = useCallback(async function () {
@@ -160,13 +164,18 @@ export function App() {
     }
     setIsLoadingSuggestions(true);
     try {
-      var newSuggestions = await getSuggestions(apiKey, messages);
+      var newSuggestions = await getSuggestions(apiKey, selectedModel, messages);
       setSuggestions(newSuggestions.slice(0, 3));
     } catch (e) {
       setSuggestions([]);
     }
     setIsLoadingSuggestions(false);
-  }, [apiKey, messages]);
+  }, [apiKey, messages, selectedModel]);
+
+  var handleModelChange = useCallback(function (modelId: string) {
+    persistSelectedModel(modelId);
+    setSelectedModelState(modelId);
+  }, []);
 
   // Load API key from dpaste
   var handleLoadApiKeyFromDpaste = useCallback(async function (urlOrCode: string) {
@@ -208,7 +217,6 @@ export function App() {
       isLoadingSuggestions={isLoadingSuggestions}
       apiKey={apiKey}
       showAbout={showAbout}
-      hideControls={hideControls}
       dpasteError={dpasteError}
       isLoadingDpaste={isLoadingDpaste}
       selectedModel={selectedModel}
@@ -220,7 +228,7 @@ export function App() {
       onClearChat={handleClearChat}
       onToggleAbout={handleToggleAbout}
       onCloseAbout={handleCloseAbout}
-      onToggleControls={handleToggleControls}
+      onReset={handleReset}
       onRetrySuggestions={handleRetrySuggestions}
     />
   );

@@ -1,5 +1,0 @@
-name = "kindllm"
-compatibility_date = "2023-12-18"
-
-[vars]
-API_KEY = ""

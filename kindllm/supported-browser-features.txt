@@ -1,0 +1,196 @@
+=====================================
+Browser Capability Test Results
+=====================================
+
+[Browser Info]
+  User Agent: Mozilla/5.0 (X11; U; Linux armv7l like Android; en-us) AppleWebKit/531.2+ (KHTML, like Gecko) Version/5.0 Safari/533.2+ Kindle/3.0+
+  Platform: Linux armv7l
+  Screen: 636 x 848
+  Window: 800 x 600
+  Pixel ratio: 2
+  Language: en-US
+  Cookie enabled: YES
+  Online: YES
+  Memory (GB): 0.5
+  CPU cores: 2
+  Touch support: NO
+  Do Not Track: n/a
+
+[JavaScript / Web APIs]
+  JSON parse/stringify: YES
+  localStorage: YES
+  sessionStorage: YES
+  IndexedDB: YES
+  XMLHttpRequest: YES
+  fetch: YES
+  Promise: YES
+  ES6 let/const: YES
+  ES6 arrow functions: YES
+  ES6 template literals: YES
+  ES6 destructuring: YES
+  ES6 default params: YES
+  ES6 spread: YES
+  ES6 Map/Set: YES
+  ES6 Symbol: YES
+  ES6 for...of: YES
+  async/await: YES
+  ES2020 BigInt: YES
+  ES2020 optional chaining: NO
+  ES2020 nullish coalescing: NO
+  Web Crypto (subtle): YES
+  Web Crypto (random): YES
+  Blob: YES
+  FileReader: YES
+  FormData: YES
+  URL constructor: YES
+  URLSearchParams: YES
+  history.pushState: YES
+  requestAnimationFrame: YES
+  cancelAnimationFrame: YES
+  MutationObserver: YES
+  IntersectionObserver: YES
+  ResizeObserver: YES
+  DOMParser: YES
+  CustomEvent: YES
+  addEventListener: YES
+  querySelector: YES
+  classList: YES
+  dataset: YES
+  Web Workers: YES
+  Service Workers: YES
+  WebAssembly: NO
+  BroadcastChannel: YES
+  Intl API: YES
+  Notification API: YES
+  Clipboard API: YES
+  Geolocation: YES
+  Device Orientation: YES
+  Page Visibility: YES
+  Fullscreen: NO
+  ES Modules (dynamic): YES
+  AbortController: YES
+  Proxy: YES
+  WeakMap/WeakSet: YES
+  matchMedia: YES
+  scheduler.yield: NO
+  Array.isArray: YES
+  Object.assign: YES
+
+[CSS]
+  CSS.supports(): YES
+  Flexbox: YES
+  CSS Grid: YES
+  CSS Subgrid: NO
+  CSS Variables: YES
+  CSS calc(): YES
+  CSS clamp(): NO
+  CSS min()/max(): NO
+  CSS Container Queries: NO
+  CSS @layer: NO
+  CSS nesting: YES
+  CSS :has(): NO
+  CSS accent-color: NO
+  CSS aspect-ratio: NO
+  CSS backdrop-filter: NO
+  border-radius: YES
+  box-shadow: YES
+  text-shadow: YES
+  CSS transitions: YES
+  CSS animations: YES
+  CSS transform: YES
+  CSS transform-style: YES
+  CSS perspective: YES
+  overflow:scroll: YES
+  overflow:overlay: YES
+  position:sticky: YES
+  object-fit: YES
+  resize: YES
+  CSS scroll-snap: YES
+  CSS overscroll-behavior: YES
+  CSS logical props: NO
+  CSS gap (flex): YES
+  CSS @supports: YES
+  CSS @media (hover): YES
+  CSS color-scheme: NO
+  CSS :is(): NO
+  CSS :where(): NO
+  CSS @property: NO
+  CSS view transitions: NO
+
+[HTML]
+  input type=text: YES
+  input type=password: YES
+  input type=number: YES
+  input type=range: YES
+  input type=date: YES
+  input type=datetime-local: YES
+  input type=month: YES
+  input type=week: YES
+  input type=time: YES
+  input type=color: YES
+  input type=search: YES
+  input type=email: YES
+  input type=tel: YES
+  input type=url: YES
+  input type=file: YES
+  input placeholder: YES
+  input required: YES
+  input pattern: YES
+  input multiple: YES
+  input autocomplete: YES
+  input autofocus: YES
+  input min/max/step: YES
+  input checked: YES
+  input disabled: YES
+  input readonly: YES
+  textarea: YES
+  select: YES
+  optgroup: YES
+  datalist: YES
+  output: YES
+  progress: YES
+  meter: YES
+  <details>/<summary>: YES
+  contenteditable: YES
+  <audio>: YES
+  <video>: YES
+  <canvas>: YES
+  <canvas> 2D context: YES
+  WebGL: NO
+  WebGL2: NO
+  <dialog>: YES
+  <template>: YES
+  <slot>: YES
+  <picture>: YES
+  <figure>/<figcaption>: YES
+  <main>: YES
+  <article>: YES
+  <section>: YES
+  <nav>: YES
+  <aside>: YES
+  <header>: YES
+  <footer>: YES
+  <time>: YES
+  <mark>: YES
+  Drag and drop: YES
+  Spellcheck: YES
+  TabIndex: YES
+  AccessKey: YES
+
+[Media / Formats]
+  Audio: MP3: YES (probably)
+  Audio: WAV: YES (maybe)
+  Audio: OGG: YES (maybe)
+  Audio: AAC: NO
+  Audio: WebM: YES (maybe)
+  Audio: FLAC: YES (probably)
+  Video: MP4/H.264: NO
+  Video: WebM/VP8: YES (probably)
+  Video: WebM/VP9: NO
+  Video: OGG/Theora: YES (probably)
+  Image: WebP encode: YES
+  Image: AVIF encode: NO
+
+=====================================
+Generated: 2026-04-02T13:06:16.854Z
+=====================================

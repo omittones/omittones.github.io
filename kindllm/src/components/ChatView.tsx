@@ -2,10 +2,10 @@ import { useRef, useEffect, useState, useCallback } from "preact/hooks";
 import { ChatBox } from "./ChatBox";
 import { Footer } from "./Footer";
 import { Logo } from "./Logo";
-import { About } from "./About";
 import { Message } from "./Message";
 import { Message as MessageType } from "../storage";
 import { AVAILABLE_MODELS, DEFAULT_MODEL } from "../providers";
+import { logger } from "../diagnostic-log";
 
 interface ChatViewProps {
   messages: MessageType[];
@@ -13,7 +13,6 @@ interface ChatViewProps {
   isLoading: boolean;
   isLoadingSuggestions: boolean;
   apiKey: string;
-  showAbout: boolean;
   dpasteError: string | null;
   isLoadingDpaste: boolean;
   selectedModel: string;
@@ -23,8 +22,7 @@ interface ChatViewProps {
   onLoadApiKeyFromDpaste: (urlOrCode: string) => void;
   onModelChange: (modelId: string) => void;
   onClearChat: () => void;
-  onToggleAbout: () => void;
-  onCloseAbout: () => void;
+  onOpenAbout: () => void;
   onReset: () => void;
   onRetrySuggestions: () => void;
 }
@@ -35,7 +33,6 @@ export function ChatView({
   isLoading,
   isLoadingSuggestions,
   apiKey,
-  showAbout,
   dpasteError,
   isLoadingDpaste,
   selectedModel,
@@ -45,8 +42,7 @@ export function ChatView({
   onLoadApiKeyFromDpaste,
   onModelChange,
   onClearChat,
-  onToggleAbout,
-  onCloseAbout,
+  onOpenAbout,
   onReset: onLogout,
   onRetrySuggestions,
 }: ChatViewProps) {
@@ -54,11 +50,33 @@ export function ChatView({
   var [dpasteCode, setDpasteCode] = useState<string>("");
   var [showModelSelector, setShowModelSelector] = useState<boolean>(false);
 
+  useEffect(function () {
+    logger("chatView").debug("ChatView mounted");
+  }, []);
+
+  useEffect(
+    function () {
+      if (!apiKey) {
+        logger("chatView").debug("UI branch: api key setup");
+      } else {
+        logger("chatView").debug("UI branch: main chat", { messageCount: messages.length });
+      }
+    },
+    [apiKey, messages.length]
+  );
+
   // Scroll to bottom when messages change
   useEffect(
     function () {
       if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+        try {
+          messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+          logger("chatView").debug("scrollIntoView(end)", { messageCount: messages.length });
+        } catch (e) {
+          logger("chatView").warn("scrollIntoView failed", {
+            message: e instanceof Error ? e.message : String(e),
+          });
+        }
       }
     },
     [messages]
@@ -67,9 +85,12 @@ export function ChatView({
   // API Key input state
   var handleApiKeySubmit = function (e: Event) {
     e.preventDefault();
+    logger("chatView").debug("api key form submit");
     var input = (e.target as HTMLFormElement).querySelector('input[type="password"]') as HTMLInputElement;
     if (input && input.value.trim()) {
       onSaveApiKey(input.value.trim());
+    } else {
+      logger("chatView").warn("api key form empty");
     }
   };
 
@@ -78,7 +99,13 @@ export function ChatView({
     function (e: Event) {
       e.preventDefault();
       if (dpasteCode.trim() && !isLoadingDpaste) {
+        logger("chatView").debug("dpaste form submit");
         onLoadApiKeyFromDpaste(dpasteCode.trim());
+      } else {
+        logger("chatView").debug("dpaste form skipped", {
+          empty: !dpasteCode.trim(),
+          loading: isLoadingDpaste,
+        });
       }
     },
     [dpasteCode, isLoadingDpaste, onLoadApiKeyFromDpaste]
@@ -154,12 +181,15 @@ export function ChatView({
 
   // Toggle model selector
   var handleToggleModelSelector = useCallback(function () {
-    setShowModelSelector(!showModelSelector);
+    var next = !showModelSelector;
+    logger("chatView").debug("toggle model selector", { open: next });
+    setShowModelSelector(next);
   }, [showModelSelector]);
 
   // Handle model change
   var handleModelSelect = useCallback(
     function (modelId: string) {
+      logger("chatView").debug("model selected from list", { modelId: modelId });
       onModelChange(modelId);
       setShowModelSelector(false);
     },
@@ -259,10 +289,9 @@ export function ChatView({
       />
       <Footer
         onClearChat={onClearChat}
-        onToggleAbout={onToggleAbout}
+        onOpenAbout={onOpenAbout}
         onLogout={onLogout}
       />
-      {showAbout && <About onClose={onCloseAbout} />}
     </div>
   );
 }

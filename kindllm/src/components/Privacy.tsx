@@ -1,4 +1,11 @@
+import { useEffect } from "preact/hooks";
+import { logger } from "../diagnostic-log";
+
 export function PrivacyView() {
+  useEffect(function () {
+    logger("privacy").debug("PrivacyView mounted");
+  }, []);
+
   return (
     <div className="privacy-container">
       <h2>KindLLM2 Privacy</h2>

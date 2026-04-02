@@ -2,6 +2,7 @@
 // ES5 compatible - no optional chaining or nullish coalescing
 
 import { LLMProvider, Message } from "./index";
+import { logger } from "../diagnostic-log";
 
 const MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1";
 const BASE_URL = "https://api.endpoints.anyscale.com/v1";
@@ -56,6 +57,10 @@ export const anyscaleProvider: LLMProvider = {
       messages: prompt,
     };
 
+    logger("provider.anyscale").debug("chat/completions request", {
+      model: MODEL,
+      historyLen: messageHistory.length,
+    });
     var response = await fetch(BASE_URL + "/chat/completions", {
       method: "POST",
       headers: {
@@ -66,6 +71,7 @@ export const anyscaleProvider: LLMProvider = {
     });
 
     if (!response.ok) {
+      logger("provider.anyscale").error("chat/completions HTTP error", { status: response.status });
       throw new Error("API request failed: " + response.status);
     }
 
@@ -77,9 +83,12 @@ export const anyscaleProvider: LLMProvider = {
       data.choices[0].message &&
       data.choices[0].message.content
     ) {
-      return data.choices[0].message.content;
+      var text = data.choices[0].message.content;
+      logger("provider.anyscale").info("chat/completions ok", { outLen: text.length });
+      return text;
     }
 
+    logger("provider.anyscale").warn("chat/completions empty choices");
     return "";
   },
 
@@ -118,6 +127,7 @@ export const anyscaleProvider: LLMProvider = {
       response_format: { type: "json_object" },
     };
 
+    logger("provider.anyscale").debug("suggestions request", { model: MODEL });
     var response = await fetch(BASE_URL + "/chat/completions", {
       method: "POST",
       headers: {
@@ -128,6 +138,7 @@ export const anyscaleProvider: LLMProvider = {
     });
 
     if (!response.ok) {
+      logger("provider.anyscale").error("suggestions HTTP error", { status: response.status });
       throw new Error("API request failed: " + response.status);
     }
 
@@ -145,13 +156,18 @@ export const anyscaleProvider: LLMProvider = {
           jsonContent.suggestions &&
           Array.isArray(jsonContent.suggestions)
         ) {
+          logger("provider.anyscale").debug("suggestions parsed", { n: jsonContent.suggestions.length });
           return jsonContent.suggestions;
         }
       } catch (e) {
+        logger("provider.anyscale").warn("suggestions JSON parse failed", {
+          message: e instanceof Error ? e.message : String(e),
+        });
         return [];
       }
     }
 
+    logger("provider.anyscale").debug("suggestions empty");
     return [];
   },
 };

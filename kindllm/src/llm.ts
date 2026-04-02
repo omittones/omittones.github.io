@@ -8,6 +8,7 @@ import {
   DEFAULT_MODEL,
   AVAILABLE_MODELS,
 } from "./providers";
+import { logger } from "./diagnostic-log";
 
 export { DEFAULT_MODEL, AVAILABLE_MODELS, getModelById };
 
@@ -26,6 +27,12 @@ export async function getNextMessage(
   }
 
   var provider = getProviderForModel(model.id);
+  logger("llm").debug("getNextMessage dispatch", {
+    modelId: model.id,
+    provider: provider.id,
+    historyLen: messages.length,
+    newLen: newMessage.length,
+  });
   return provider.getNextMessage(apiKey, model.id, messages, newMessage);
 }
 
@@ -43,5 +50,10 @@ export async function getSuggestions(
   }
 
   var provider = getProviderForModel(model.id);
+  logger("llm").debug("getSuggestions dispatch", {
+    modelId: model.id,
+    provider: provider.id,
+    historyLen: messages.length,
+  });
   return provider.getSuggestions(apiKey, model.id, messages);
 }

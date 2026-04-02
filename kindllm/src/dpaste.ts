@@ -1,6 +1,8 @@
 // dpaste.com API client for loading API keys
 // ES5 compatible - no optional chaining or nullish coalescing
 
+import { logger } from "./diagnostic-log";
+
 const DPASTE_BASE_URL = "https://dpaste.com";
 
 /**
@@ -71,9 +73,11 @@ export async function fetchApiKeyFromDpaste(urlOrCode: string): Promise<string> 
   var url = constructDpasteUrl(id);
 
   try {
+    logger("dpaste").debug("fetchApiKeyFromDpaste start", { idLen: id.length });
     var response = await fetch(url);
 
     if (!response.ok) {
+      logger("dpaste").warn("fetch paste HTTP error", { status: response.status });
       if (response.status === 404) {
         throw new Error("Paste not found or expired");
       }
@@ -84,9 +88,11 @@ export async function fetchApiKeyFromDpaste(urlOrCode: string): Promise<string> 
     var trimmedContent = content.trim();
 
     if (!trimmedContent) {
+      logger("dpaste").warn("paste empty body");
       throw new Error("Paste is empty");
     }
 
+    logger("dpaste").info("fetchApiKeyFromDpaste ok", { bodyLen: trimmedContent.length });
     return trimmedContent;
   } catch (error) {
     // Re-throw dpaste-specific errors
@@ -98,7 +104,58 @@ export async function fetchApiKeyFromDpaste(urlOrCode: string): Promise<string> 
         throw error;
       }
     }
+    logger("dpaste").error("fetchApiKeyFromDpaste catch", {
+      message: error instanceof Error ? error.message : String(error),
+    });
     // Wrap network errors
     throw new Error("Failed to fetch paste");
   }
+}
+
+const DPASTE_API_V2 = DPASTE_BASE_URL + "/api/v2/";
+
+/**
+ * Upload plain text to dpaste.com (diagnostic export).
+ * Per dpaste ToS: identify the client; avoid more than one request per second.
+ * @returns Public URL of the new paste (trimmed response body)
+ */
+export async function uploadContentToDpaste(
+  content: string,
+  options?: { title?: string; expiryDays?: number }
+): Promise<string> {
+  if (!content || typeof content !== "string") {
+    throw new Error("Nothing to upload");
+  }
+
+  var params = new URLSearchParams();
+  params.set("content", content);
+  if (options && options.title) {
+    params.set("title", options.title);
+  }
+  if (options && typeof options.expiryDays === "number") {
+    params.set("expiry_days", String(options.expiryDays));
+  }
+
+  logger("dpaste").debug("uploadContentToDpaste start", { contentLen: content.length });
+  var response = await fetch(DPASTE_API_V2, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: params.toString(),
+  });
+
+  if (response.status !== 201) {
+    logger("dpaste").error("upload failed status", { status: response.status });
+    throw new Error("dpaste upload failed: HTTP " + response.status);
+  }
+
+  var url = (await response.text()).trim();
+  if (!url || url.indexOf("dpaste.com") === -1) {
+    logger("dpaste").error("upload unexpected body", { bodyLen: url.length });
+    throw new Error("dpaste upload returned unexpected response");
+  }
+
+  logger("dpaste").info("uploadContentToDpaste ok", { urlLen: url.length });
+  return url;
 }

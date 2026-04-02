@@ -1,3 +1,5 @@
+import { logger } from "../diagnostic-log";
+
 interface SuggestionsProps {
   suggestions: string[];
   onSuggestionClick: (suggestion: string) => void;
@@ -32,7 +34,10 @@ export function Suggestions({ suggestions, onSuggestionClick, onRetry, isLoading
         No good follow-up suggestions found
         <button
           className="suggestion-button"
-          onClick={onRetry}
+          onClick={function () {
+            logger("suggestions").debug("retry click");
+            onRetry();
+          }}
           style={{
             border: "1px solid #ddd",
             marginLeft: "1rem",
@@ -60,6 +65,7 @@ function SuggestionButton({ suggestion, onClick }: SuggestionButtonProps) {
   return (
     <button
       onClick={function () {
+        logger("suggestions").debug("suggestion click", { len: suggestion.length });
         onClick(suggestion);
       }}
       className="suggestion-button"

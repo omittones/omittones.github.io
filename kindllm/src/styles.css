@@ -225,28 +225,20 @@ button:active {
   display: none;
 }
 
-/* About modal */
-.about-modal {
-  position: fixed;
-  top: 60px;
-  bottom: 300px;
-  right: 100px;
-  left: 100px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  padding: 2rem;
+/* About page (hash #about) */
+.about-page {
+  padding: 1rem;
+  max-width: 512px;
+  margin: 2rem auto;
   text-align: left;
 }
 
-.about-close-button {
-  border: 1px solid #ddd;
-  padding: 0.5rem 1rem;
-  border-radius: 10rem;
-  font-size: 1rem;
-  background-color: #fff;
-  float: right;
-  cursor: pointer;
-  min-height: 44px;
+.about-back-button {
+  margin-bottom: 1rem;
+}
+
+.about-title {
+  margin-top: 0;
 }
 
 /* Landing view */
@@ -272,6 +264,34 @@ button:active {
 .logo {
   margin: 1rem auto;
   display: block;
+}
+
+/* About — diagnostics (debug mode) */
+.about-diagnostics {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #000;
+}
+
+.about-diagnostics-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.about-diagnostics-label {
+  display: block;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.about-diagnostics-textarea {
+  width: 100%;
+  margin-top: 0.5rem;
+  font-family: monospace;
+  font-size: 14px;
+  min-height: 200px;
 }
 
 /* Privacy view */

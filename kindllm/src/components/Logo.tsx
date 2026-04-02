@@ -1,5 +1,12 @@
 // High-contrast logo for e-ink displays (no gradients)
+import { useEffect } from "preact/hooks";
+import { logger } from "../diagnostic-log";
+
 export function Logo() {
+  useEffect(function () {
+    logger("logo").debug("Logo mounted");
+  }, []);
+
   return (
     <svg
       className="logo"

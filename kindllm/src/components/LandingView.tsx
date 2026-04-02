@@ -1,10 +1,16 @@
+import { useEffect } from "preact/hooks";
 import { Logo } from "./Logo";
+import { logger } from "../diagnostic-log";
 
 interface LandingViewProps {
   onEnterChat?: () => void;
 }
 
 export function LandingView({ onEnterChat }: LandingViewProps) {
+  useEffect(function () {
+    logger("landing").debug("LandingView mounted");
+  }, []);
+
   return (
     <div style={{ width: "100%" }}>
       <div className="landing-container">
@@ -20,7 +26,12 @@ export function LandingView({ onEnterChat }: LandingViewProps) {
         {onEnterChat && (
           <p style={{ textAlign: "center", margin: "2rem 0" }}>
             <button
-              onClick={onEnterChat}
+              onClick={function () {
+                logger("landing").debug("Start Chatting click");
+                if (onEnterChat) {
+                  onEnterChat();
+                }
+              }}
               style={{
                 padding: "1rem 2rem",
                 border: "1px solid #000",

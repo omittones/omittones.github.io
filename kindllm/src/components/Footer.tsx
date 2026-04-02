@@ -1,19 +1,39 @@
+import { logger } from "../diagnostic-log";
+
 interface FooterProps {
   onClearChat: () => void;
-  onToggleAbout: () => void;
+  onOpenAbout: () => void;
   onLogout: () => void;
 }
 
-export function Footer({ onClearChat, onToggleAbout, onLogout }: FooterProps) {
+export function Footer({ onClearChat, onOpenAbout, onLogout }: FooterProps) {
   return (
     <div className="footer">
-      <button className="footer-button" onClick={onToggleAbout}>
+      <button
+        className="footer-button"
+        onClick={function () {
+          logger("footer").debug("About click");
+          onOpenAbout();
+        }}
+      >
         About
       </button>
-      <button className="footer-button" onClick={onClearChat}>
+      <button
+        className="footer-button"
+        onClick={function () {
+          logger("footer").debug("Clear chat click");
+          onClearChat();
+        }}
+      >
         Clear chat
       </button>
-      <button className="footer-button" onClick={onLogout}>
+      <button
+        className="footer-button"
+        onClick={function () {
+          logger("footer").debug("Logout click");
+          onLogout();
+        }}
+      >
         Logout
       </button>
     </div>

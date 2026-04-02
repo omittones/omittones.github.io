@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { fetchApiKeyFromDpaste, extractDpasteId, constructDpasteUrl } from "./dpaste";
+import {
+  fetchApiKeyFromDpaste,
+  extractDpasteId,
+  constructDpasteUrl,
+  uploadContentToDpaste,
+} from "./dpaste";
 
 describe("dpaste service", function () {
   var originalFetch: typeof global.fetch;
@@ -141,6 +146,39 @@ describe("dpaste service", function () {
       await expect(fetchApiKeyFromDpaste("")).rejects.toThrow(
         "Invalid dpaste code or URL"
       );
+    });
+  });
+
+  describe("uploadContentToDpaste", function () {
+    it("should POST content and return paste URL on 201", async function () {
+      var mockResponse = {
+        status: 201,
+        text: function () {
+          return Promise.resolve("https://dpaste.com/ABCD12345");
+        },
+      };
+      (global.fetch as any).mockResolvedValue(mockResponse);
+
+      var url = await uploadContentToDpaste("hello log");
+
+      expect(url).toBe("https://dpaste.com/ABCD12345");
+      expect(global.fetch).toHaveBeenCalledWith(
+        "https://dpaste.com/api/v2/",
+        expect.objectContaining({
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        })
+      );
+    });
+
+    it("should throw for non-201 response", async function () {
+      (global.fetch as any).mockResolvedValue({ status: 403, text: function () { return Promise.resolve(""); } });
+
+      await expect(uploadContentToDpaste("x")).rejects.toThrow("dpaste upload failed: HTTP 403");
+    });
+
+    it("should throw for empty content", async function () {
+      await expect(uploadContentToDpaste("")).rejects.toThrow("Nothing to upload");
     });
   });
 });

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "preact/hooks";
 import { ChatView } from "./components/ChatView";
 import { LandingView } from "./components/LandingView";
 import { PrivacyView } from "./components/Privacy";
+import { About } from "./components/About";
 import {
   Message,
   getApiKey,
@@ -15,20 +16,32 @@ import {
 } from "./storage";
 import { getNextMessage, getSuggestions, DEFAULT_MODEL, getModelById } from "./llm";
 import { fetchApiKeyFromDpaste } from "./dpaste";
+import { logger, isDiagnosticDebugEnabled } from "./diagnostic-log";
 
-type View = "landing" | "chat" | "privacy";
+type View = "landing" | "chat" | "privacy" | "about";
 
 function getInitialView(): View {
   var path = window.location.pathname;
   var hash = window.location.hash;
   if (path.indexOf("privacy") !== -1 || hash === "#privacy") {
+    logger("routing").debug("getInitialView", { view: "privacy", path: path, hash: hash });
     return "privacy";
+  }
+  if (path.indexOf("about") !== -1 || hash === "#about") {
+    logger("routing").debug("getInitialView", { view: "about", path: path, hash: hash });
+    return "about";
   }
   var userAgent = navigator.userAgent;
   var isKindle = userAgent.indexOf("Kindle/3.0+") !== -1 || userAgent.indexOf("Kindle") !== -1;
   if (isKindle || getApiKey()) {
+    logger("routing").debug("getInitialView", {
+      view: "chat",
+      isKindle: isKindle,
+      hasStoredKey: Boolean(getApiKey()),
+    });
     return "chat";
   }
+  logger("routing").debug("getInitialView", { view: "landing" });
   return "landing";
 }
 
@@ -40,7 +53,6 @@ export function App() {
   var [isLoading, setIsLoading] = useState<boolean>(false);
   var [suggestions, setSuggestions] = useState<string[]>([]);
   var [isLoadingSuggestions, setIsLoadingSuggestions] = useState<boolean>(false);
-  var [showAbout, setShowAbout] = useState<boolean>(false);
   var [dpasteError, setDpasteError] = useState<string | null>(null);
   var [isLoadingDpaste, setIsLoadingDpaste] = useState<boolean>(false);
   var [selectedModel, setSelectedModelState] = useState<string>(function () {
@@ -55,8 +67,11 @@ export function App() {
   useEffect(function () {
     function handleHashChange() {
       var hash = window.location.hash;
+      logger("routing").debug("hashchange", { hash: hash });
       if (hash === "#privacy") {
         setView("privacy");
+      } else if (hash === "#about") {
+        setView("about");
       } else if (hash === "" || hash === "#") {
         if (getApiKey()) {
           setView("chat");
@@ -74,19 +89,33 @@ export function App() {
     };
   }, []);
 
+  useEffect(function () {
+    logger("app").info("view active", { view: view });
+  }, [view]);
+
+  useEffect(function () {
+    logger("app").debug("App mounted");
+  }, []);
+
   // Save API key
   var handleSaveApiKey = useCallback(function (key: string) {
     setApiKey(key);
     setApiKeyState(key);
+    logger("app").info("api key saved from form", { keyLen: key.length });
   }, []);
 
   // Send message
   var handleSendMessage = useCallback(async function (messageText: string) {
     if (!apiKey || !messageText.trim()) {
+      logger("app").debug("sendMessage skipped", {
+        hasKey: Boolean(apiKey),
+        empty: !messageText.trim(),
+      });
       return;
     }
 
     setIsLoading(true);
+    logger("app").debug("sendMessage state", { loading: true });
 
     // Add user message
     var newUserMessage: Message = { role: "user", content: messageText };
@@ -95,7 +124,9 @@ export function App() {
     setMessages(updatedMessages);
 
     try {
+      logger("llm").info("sendMessage start", { model: selectedModel, historyLen: messages.length });
       var response = await getNextMessage(apiKey, selectedModel, messages, messageText);
+      logger("llm").info("sendMessage assistant reply", { outLen: response.length });
       var assistantMessage: Message = { role: "assistant", content: response };
       var finalMessages = [...updatedMessages, assistantMessage];
       setMessagesState(finalMessages);
@@ -105,12 +136,18 @@ export function App() {
       setIsLoadingSuggestions(true);
       try {
         var newSuggestions = await getSuggestions(apiKey, selectedModel, finalMessages);
-        setSuggestions(newSuggestions.slice(0, 3));
+        var top = newSuggestions.slice(0, 3);
+        setSuggestions(top);
+        logger("llm").info("getSuggestions ok", { n: top.length });
       } catch (e) {
+        var sErr = e instanceof Error ? e.message : String(e);
+        logger("llm").warn("getSuggestions failed", { message: sErr });
         setSuggestions([]);
       }
       setIsLoadingSuggestions(false);
     } catch (e) {
+      var errMsg = e instanceof Error ? e.message : String(e);
+      logger("llm").error("sendMessage failed", { message: errMsg });
       // Handle error - add error message
       var errorMessage: Message = {
         role: "assistant",
@@ -121,64 +158,75 @@ export function App() {
       setMessages(errorMessages);
     } finally {
       setIsLoading(false);
+      logger("app").debug("sendMessage state", { loading: false });
     }
   }, [apiKey, messages, selectedModel]);
 
   // Handle suggestion click
   var handleSuggestionClick = useCallback(function (suggestion: string) {
+    logger("app").debug("suggestion click", { len: suggestion.length });
     handleSendMessage(suggestion);
     setSuggestions([]);
   }, [handleSendMessage]);
 
   // Clear chat
   var handleClearChat = useCallback(function () {
+    logger("app").info("clear chat requested");
     setMessagesState([]);
     setSuggestions([]);
     clearMessages();
   }, []);
 
-  // Toggle about modal
-  var handleToggleAbout = useCallback(function () {
-    setShowAbout(!showAbout);
-  }, [showAbout]);
-
-  var handleCloseAbout = useCallback(function () {
-    setShowAbout(false);
+  var handleOpenAbout = useCallback(function () {
+    logger("routing").debug("navigate to #about");
+    window.location.hash = "#about";
   }, []);
 
   // Reset everything and go back to landing
   var handleReset = useCallback(function () {
+    logger("app").info("logout / reset all");
     clearAll();
     setApiKeyState("");
     setMessagesState([]);
     setSuggestions([]);
     setSelectedModelState(DEFAULT_MODEL.id);
-    setShowAbout(false);
+    window.location.hash = "";
     setView("landing");
   }, []);
 
   // Retry getting suggestions
   var handleRetrySuggestions = useCallback(async function () {
     if (!apiKey || messages.length < 2) {
+      logger("app").debug("retry suggestions skipped", {
+        hasKey: Boolean(apiKey),
+        messages: messages.length,
+      });
       return;
     }
+    logger("app").debug("retry suggestions start");
     setIsLoadingSuggestions(true);
     try {
       var newSuggestions = await getSuggestions(apiKey, selectedModel, messages);
-      setSuggestions(newSuggestions.slice(0, 3));
+      var top = newSuggestions.slice(0, 3);
+      setSuggestions(top);
+      logger("llm").info("retry getSuggestions ok", { n: top.length });
     } catch (e) {
+      var rErr = e instanceof Error ? e.message : String(e);
+      logger("llm").warn("retry getSuggestions failed", { message: rErr });
       setSuggestions([]);
     }
     setIsLoadingSuggestions(false);
   }, [apiKey, messages, selectedModel]);
 
   var handleModelChange = useCallback(function (modelId: string) {
+    logger("app").info("model changed", { modelId: modelId });
     persistSelectedModel(modelId);
     setSelectedModelState(modelId);
   }, []);
 
   // Load API key from dpaste
   var handleLoadApiKeyFromDpaste = useCallback(async function (urlOrCode: string) {
+    logger("app").debug("dpaste load start", { inputLen: urlOrCode.length });
     setDpasteError(null);
     setIsLoadingDpaste(true);
 
@@ -188,15 +236,20 @@ export function App() {
         setApiKey(fetchedKey);
         setApiKeyState(fetchedKey);
         setDpasteError(null);
+        logger("app").info("api key loaded from dpaste", { keyLen: fetchedKey.length });
+      } else {
+        logger("app").warn("dpaste returned empty key");
       }
     } catch (error) {
       var errorMessage = "Failed to load API key";
       if (error instanceof Error) {
         errorMessage = error.message;
       }
+      logger("dpaste").error("loadApiKey failed", { message: errorMessage });
       setDpasteError(errorMessage);
     } finally {
       setIsLoadingDpaste(false);
+      logger("app").debug("dpaste load finished");
     }
   }, []);
 
@@ -205,8 +258,27 @@ export function App() {
     return <PrivacyView />;
   }
 
+  if (view === "about") {
+    return (
+      <About
+        onBack={function () {
+          logger("routing").debug("about back — clear hash");
+          window.location.hash = "";
+        }}
+        debugMode={isDiagnosticDebugEnabled()}
+      />
+    );
+  }
+
   if (view === "landing") {
-    return <LandingView onEnterChat={function () { setView("chat"); }} />;
+    return (
+      <LandingView
+        onEnterChat={function () {
+          logger("app").info("landing — enter chat");
+          setView("chat");
+        }}
+      />
+    );
   }
 
   return (
@@ -216,7 +288,6 @@ export function App() {
       isLoading={isLoading}
       isLoadingSuggestions={isLoadingSuggestions}
       apiKey={apiKey}
-      showAbout={showAbout}
       dpasteError={dpasteError}
       isLoadingDpaste={isLoadingDpaste}
       selectedModel={selectedModel}
@@ -226,8 +297,7 @@ export function App() {
       onLoadApiKeyFromDpaste={handleLoadApiKeyFromDpaste}
       onModelChange={handleModelChange}
       onClearChat={handleClearChat}
-      onToggleAbout={handleToggleAbout}
-      onCloseAbout={handleCloseAbout}
+      onOpenAbout={handleOpenAbout}
       onReset={handleReset}
       onRetrySuggestions={handleRetrySuggestions}
     />

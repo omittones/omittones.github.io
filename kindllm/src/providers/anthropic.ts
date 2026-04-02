@@ -2,6 +2,7 @@
 // ES5 compatible - no optional chaining or nullish coalescing
 
 import { LLMProvider, Message } from "./index";
+import { logger } from "../diagnostic-log";
 
 const BASE_URL = "https://api.anthropic.com/v1";
 const API_VERSION = "2023-06-01";
@@ -73,6 +74,10 @@ export const anthropicProvider: LLMProvider = {
       temperature: 0.7,
     };
 
+    logger("provider.anthropic").debug("messages request", {
+      model: modelId,
+      msgCount: messageHistory.length,
+    });
     var response = await fetch(BASE_URL + "/messages", {
       method: "POST",
       headers: {
@@ -91,6 +96,10 @@ export const anthropicProvider: LLMProvider = {
       } catch (e) {
         errorText = "Unknown error";
       }
+      logger("provider.anthropic").error("messages HTTP error", {
+        status: response.status,
+        bodyLen: errorText.length,
+      });
       throw new Error(
         "Anthropic API error: " + response.status + " - " + errorText
       );
@@ -105,9 +114,12 @@ export const anthropicProvider: LLMProvider = {
       data.content[0] &&
       data.content[0].text
     ) {
-      return data.content[0].text;
+      var out = data.content[0].text;
+      logger("provider.anthropic").info("messages ok", { outLen: out.length });
+      return out;
     }
 
+    logger("provider.anthropic").warn("messages empty content shape");
     return "";
   },
 
@@ -143,6 +155,7 @@ export const anthropicProvider: LLMProvider = {
       temperature: 0.7,
     };
 
+    logger("provider.anthropic").debug("suggestions request", { model: modelId });
     var response = await fetch(BASE_URL + "/messages", {
       method: "POST",
       headers: {
@@ -155,6 +168,7 @@ export const anthropicProvider: LLMProvider = {
     });
 
     if (!response.ok) {
+      logger("provider.anthropic").warn("suggestions HTTP non-ok", { status: response.status });
       return [];
     }
 
@@ -172,13 +186,19 @@ export const anthropicProvider: LLMProvider = {
           jsonContent.suggestions &&
           Array.isArray(jsonContent.suggestions)
         ) {
-          return jsonContent.suggestions.slice(0, 3);
+          var sliced = jsonContent.suggestions.slice(0, 3);
+          logger("provider.anthropic").debug("suggestions parsed", { n: sliced.length });
+          return sliced;
         }
       } catch (e) {
+        logger("provider.anthropic").warn("suggestions JSON parse failed", {
+          message: e instanceof Error ? e.message : String(e),
+        });
         return [];
       }
     }
 
+    logger("provider.anthropic").debug("suggestions empty");
     return [];
   },
 };

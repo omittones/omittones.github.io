@@ -1,6 +1,8 @@
 // Provider abstraction layer for LLM APIs
 // ES5 compatible - no optional chaining or nullish coalescing
 
+import { logger } from "../diagnostic-log";
+
 export type ProviderId = "anthropic" | "anyscale";
 
 export interface ModelConfig {
@@ -95,6 +97,7 @@ export function isValidModel(modelId: string): boolean {
 export function getProvider(id: ProviderId): LLMProvider {
   var provider = providerRegistry[id];
   if (!provider) {
+    logger("providers").error("unknown provider id", { id: id });
     throw new Error("Unknown provider: " + id);
   }
   return provider;
@@ -106,6 +109,7 @@ export function getProvider(id: ProviderId): LLMProvider {
 export function getProviderForModel(modelId: string): LLMProvider {
   var model = getModelById(modelId);
   if (!model) {
+    logger("providers").error("unknown model id", { modelId: modelId });
     throw new Error("Unknown model: " + modelId);
   }
   return getProvider(model.provider);

@@ -1,5 +1,6 @@
 import { useState, useCallback } from "preact/hooks";
 import { Suggestions } from "./Suggestions";
+import { logger } from "../diagnostic-log";
 
 interface ChatBoxProps {
   onSendMessage: (message: string) => void;
@@ -24,8 +25,14 @@ export function ChatBox({
     function (e: Event) {
       e.preventDefault();
       if (message.trim() && !isLoading) {
+        logger("chatBox").debug("submit send", { len: message.trim().length });
         onSendMessage(message);
         setMessage("");
+      } else {
+        logger("chatBox").debug("submit blocked", {
+          empty: !message.trim(),
+          loading: isLoading,
+        });
       }
     },
     [message, isLoading, onSendMessage]

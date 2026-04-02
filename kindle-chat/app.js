@@ -63,7 +63,7 @@ function sendMessage() {
 
 function init() {
   var stored = '';
-  try { stored = localStorage.getItem('claude_api_key') || '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'; } catch(e) {}
+  try { stored = localStorage.getItem('claude_api_key') || ''; } catch(e) {}
   if (!stored) return;
 
   API_KEY = stored;

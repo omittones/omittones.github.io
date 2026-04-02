@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import { resolve } from 'path';
 
 export default defineConfig({
+  // Relative URLs so the site works when hosted under a subpath (e.g. GitHub Pages project sites).
+  base: './',
   build: {
     outDir: 'dist',
     emptyOutDir: true,

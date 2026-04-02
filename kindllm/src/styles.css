@@ -1,0 +1,270 @@
+/* Kindllm Static Styles - ES5 compatible, Kindle-optimized */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: sans-serif;
+  font-size: 16px;
+}
+
+*:focus {
+  outline: none;
+}
+
+button:active {
+  background-color: #aaa;
+}
+
+/* Toggle button carets */
+.toggle-button .up-caret {
+  display: block;
+}
+
+.toggle-button .down-caret {
+  display: none;
+}
+
+.hide-controls .toggle-button .up-caret {
+  display: none;
+}
+
+.hide-controls .toggle-button .down-caret {
+  display: block;
+}
+
+.hide-controls .suggestions-container {
+  display: none;
+}
+
+/* Chat box container */
+.chat-box-container {
+  display: flex;
+  padding: 1rem;
+  width: 100%;
+}
+
+.hide-controls .chat-box-container {
+  display: none;
+}
+
+/* Messages container */
+.messages-container {
+  height: 48%;
+  overflow-y: auto;
+  padding: 1rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.hide-controls .messages-container {
+  height: calc(100vh - 87.5px);
+}
+
+/* API Key input styles */
+.api-key-container {
+  padding: 1rem;
+  text-align: center;
+  max-width: 400px;
+  margin: 2rem auto;
+}
+
+.api-key-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #000;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.api-key-button {
+  padding: 0.75rem 2rem;
+  border: 1px solid #000;
+  background: #fff;
+  cursor: pointer;
+  border-radius: 4px;
+  min-width: 120px;
+  min-height: 44px;
+}
+
+/* Chat styles */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.message-user {
+  margin-bottom: 1rem;
+}
+
+.message-assistant {
+  margin-bottom: 1rem;
+}
+
+/* Suggestions */
+.suggestions-container {
+  padding: 0.5rem 1rem;
+}
+
+.suggestion-button {
+  border: 1px solid #000;
+  padding: 1rem 2rem;
+  border-radius: 10rem;
+  text-align: left;
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  width: 100%;
+  height: 55px;
+  display: table-cell;
+  vertical-align: middle;
+  background: #fff;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.suggestions-retry {
+  text-align: center;
+}
+
+.suggestions-retry-hidden {
+  display: none;
+}
+
+/* Footer */
+.footer {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  text-align: right;
+  padding: 1rem;
+  background: #fff;
+}
+
+.footer-button {
+  margin-left: 0.5rem;
+  border: 1px solid #ddd;
+  padding: 1rem 2rem;
+  border-radius: 10rem;
+  font-size: 1rem;
+  background-color: #fff;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.toggle-button {
+  position: absolute;
+  left: 1rem;
+  width: 55px;
+  height: 55px;
+  border: 1px solid #ddd;
+  border-radius: 20rem;
+  font-size: 1rem;
+  background-color: #fff;
+  cursor: pointer;
+}
+
+/* Chat input */
+.chat-input {
+  border: 1px solid #000;
+  padding: 1rem 2rem;
+  border-radius: 10rem;
+  flex: 1;
+  font-size: 1rem;
+}
+
+.chat-submit-button {
+  margin-left: 0.5rem;
+  border: 1px solid #000;
+  padding: 0 2rem;
+  border-radius: 10rem;
+  text-align: center;
+  width: 140px;
+  font-size: 1rem;
+  cursor: pointer;
+  min-height: 44px;
+  background: #fff;
+}
+
+/* Loading indicator */
+.loading-indicator {
+  display: none;
+}
+
+.loading .loading-indicator {
+  display: block;
+}
+
+.loading .send-text {
+  display: none;
+}
+
+/* About modal */
+.about-modal {
+  position: fixed;
+  top: 60px;
+  bottom: 300px;
+  right: 100px;
+  left: 100px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  padding: 2rem;
+  text-align: left;
+}
+
+.about-close-button {
+  border: 1px solid #ddd;
+  padding: 0.5rem 1rem;
+  border-radius: 10rem;
+  font-size: 1rem;
+  background-color: #fff;
+  float: right;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+/* Landing view */
+.landing-container {
+  width: 100%;
+  max-width: 512px;
+  margin: 2rem auto;
+  padding: 1rem;
+  line-height: 1.5rem;
+}
+
+.landing-title {
+  margin: 0;
+  text-align: center;
+}
+
+.landing-text {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+/* Logo - high contrast for e-ink */
+.logo {
+  margin: 1rem auto;
+  display: block;
+}
+
+/* Privacy view */
+.privacy-container {
+  padding: 1rem;
+  max-width: 512px;
+  margin: 2rem auto;
+}

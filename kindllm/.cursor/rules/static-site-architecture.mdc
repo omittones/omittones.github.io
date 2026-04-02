@@ -8,6 +8,8 @@ alwaysApply: true
 
 Convert from server-rendered Hono app to pre-compiled static site.
 
+> **Package Manager:** Use `pnpm` for all commands. Do not use `npm` or `yarn`.
+
 ## Architecture Overview
 
 ```
@@ -114,6 +116,6 @@ function addMessage(msg) {
 
 ## Deployment
 
-- Build: `npm run build` → outputs to `dist/`
+- Build: `pnpm build` → outputs to `dist/`
 - Deploy `dist/` to any static host (GitHub Pages, Cloudflare Pages, etc.)
 - No server runtime required

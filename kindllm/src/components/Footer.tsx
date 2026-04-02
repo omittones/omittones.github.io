@@ -1,63 +1,25 @@
-export const Footer = () => (
-  <div
-    style={{
-      position: "fixed",
-      bottom: 0,
-      right: 0,
-      left: 0,
-      textAlign: "right",
-      padding: "1rem",
-    }}
-  >
-    <button
-      style={{
-        border: "1px solid #ddd",
-        borderRadius: "20rem",
-        flexBasis: "content",
-        fontSize: "1rem",
-        backgroundColor: "white",
-        position: "absolute",
-        left: "1rem",
-        width: "55px",
-        height: "55px",
-      }}
-      class="toggle-button"
-      onclick="toggleShowControls()"
-    >
-      <span class="up-caret">∧</span>
-      <span class="down-caret">∨</span>
-    </button>
+interface FooterProps {
+  onClearChat: () => void;
+  onToggleAbout: () => void;
+  onToggleControls: () => void;
+  hideControls: boolean;
+}
 
-    <button
-      style={{
-        marginLeft: "0.5rem",
-        border: "1px solid #ddd",
-        padding: "1rem 2rem",
-        "border-radius": "10rem",
-        flexBasis: "content",
-        fontSize: "1rem",
-        backgroundColor: "white",
-      }}
-      hx-post="/about"
-      hx-target="#about-container"
-    >
-      About
-    </button>
+export function Footer({ onClearChat, onToggleAbout, onToggleControls, hideControls }: FooterProps) {
+  return (
+    <div className="footer">
+      <button className="toggle-button" onClick={onToggleControls}>
+        <span className="up-caret">&#8743;</span>
+        <span className="down-caret">&#8744;</span>
+      </button>
 
-    <button
-      style={{
-        marginLeft: "0.5rem",
-        border: "1px solid #ddd",
-        padding: "1rem 2rem",
-        "border-radius": "10rem",
-        flexBasis: "content",
-        fontSize: "1rem",
-        backgroundColor: "white",
-      }}
-      onclick="clearChat()"
-    >
-      Clear chat
-    </button>
-    <div id="about-container"></div>
-  </div>
-);
+      <button className="footer-button" onClick={onToggleAbout}>
+        About
+      </button>
+
+      <button className="footer-button" onClick={onClearChat}>
+        Clear chat
+      </button>
+    </div>
+  );
+}

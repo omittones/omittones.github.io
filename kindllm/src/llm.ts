@@ -1,95 +1,147 @@
-import OpenAI from "openai";
-import { ChatCompletionMessageParam } from "openai/resources";
+// LLM API client using direct fetch() for Kindle browser compatibility
+// ES5 compatible - no optional chaining or nullish coalescing
 
-const MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1"; // "gpt-3.5-turbo";
-// We're using Anyscale Endpoints for inference, change this to use OpenAI
+import { Message } from "./storage";
+
+const MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1";
 const BASE_URL = "https://api.endpoints.anyscale.com/v1";
 
-export async function getNextMessage(apiKey: string, messages: string, message: string) {
-  const messageHistory = messages.split("||||").map((m) => {
-    if (m.startsWith("<b>Kindllm</b>: ")) {
-      return {
-        role: "assistant",
-        content: m.replace("<b>Kindllm</b>: ", ""),
-      };
-    } else {
-      return {
-        role: "user",
-        content: m.replace("<b>User</b>: ", ""),
-      };
-    }
-  });
+interface ChatCompletionRequest {
+  model: string;
+  messages: Array<{ role: string; content: string }>;
+  response_format?: { type: string };
+}
 
-  const systemPrompt = {
+interface ChatCompletionResponse {
+  choices: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
+
+export async function getNextMessage(
+  apiKey: string,
+  messages: Message[],
+  newMessage: string
+): Promise<string> {
+  var systemPrompt = {
     role: "system",
     content:
       "You are a helpful assistant on a a Kindle e-reader, called Kindllm. You get straight to the point with a short answer and a pleasant demeanor.",
   };
 
-  // concatenate the message history with the new message
-  const prompt = [systemPrompt, ...messageHistory, { role: "user", content: message }];
-
-  const openai = new OpenAI({
-    baseURL: BASE_URL,
-    apiKey: apiKey,
+  // Build message history
+  var messageHistory = messages.map(function (m) {
+    return {
+      role: m.role,
+      content: m.content,
+    };
   });
 
-  const completion = await openai.chat.completions.create({
-    messages: prompt,
+  // Add the new user message
+  var prompt = [
+    systemPrompt,
+    ...messageHistory,
+    { role: "user", content: newMessage },
+  ];
+
+  var requestBody: ChatCompletionRequest = {
     model: MODEL,
+    messages: prompt,
+  };
+
+  var response = await fetch(BASE_URL + "/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + apiKey,
+    },
+    body: JSON.stringify(requestBody),
   });
 
-  const messageContent = completion.choices[0].message.content || "";
+  if (!response.ok) {
+    throw new Error("API request failed: " + response.status);
+  }
 
-  return messageContent;
+  var data: ChatCompletionResponse = await response.json();
+
+  if (
+    data.choices &&
+    data.choices[0] &&
+    data.choices[0].message &&
+    data.choices[0].message.content
+  ) {
+    return data.choices[0].message.content;
+  }
+
+  return "";
 }
 
-export async function getSuggestions(apiKey: string, messages: string): Promise<string[]> {
-  const messageHistory = messages.split("||||").map((m) => {
-    if (m.startsWith("<b>Kindllm</b>: ")) {
-      return {
-        role: "assistant",
-        content: m.replace("<b>Kindllm</b>: ", ""),
-      };
-    } else {
-      return {
-        role: "user",
-        content: m.replace("<b>User</b>: ", ""),
-      };
-    }
-  });
+export async function getSuggestions(
+  apiKey: string,
+  messages: Message[]
+): Promise<string[]> {
+  if (messages.length < 2) {
+    return [];
+  }
 
-  const message = messageHistory[messageHistory.length - 1].content;
-  const lastMessage = messageHistory[messageHistory.length - 2];
+  var lastMessage = messages[messages.length - 1];
+  var previousMessage = messages[messages.length - 2];
 
-  if (!message || !lastMessage) return [];
+  if (!lastMessage || !previousMessage) {
+    return [];
+  }
 
-  const suggestionsSystemPrompt = {
+  var suggestionsSystemPrompt = {
     role: "system",
     content:
       "You a are a helpful assistant that generates insightful follow-up questions. You're reply is always formatted as a JSON object with a suggestions array.",
   };
 
-  const suggestionsPrompt = [
+  var suggestionsPrompt = [
     suggestionsSystemPrompt,
-    lastMessage,
-    { role: "assistant", content: message },
+    { role: "user", content: previousMessage.content },
+    { role: "assistant", content: lastMessage.content },
     { role: "user", content: "List three good follow-up questions:" },
-  ] as ChatCompletionMessageParam[];
+  ];
 
-  const openai = new OpenAI({
-    baseURL: BASE_URL,
-    apiKey: apiKey,
-  });
-
-  const response = await openai.chat.completions.create({
-    messages: suggestionsPrompt,
+  var requestBody: ChatCompletionRequest = {
     model: MODEL,
-    response_format: {
-      type: "json_object",
+    messages: suggestionsPrompt,
+    response_format: { type: "json_object" },
+  };
+
+  var response = await fetch(BASE_URL + "/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + apiKey,
     },
+    body: JSON.stringify(requestBody),
   });
 
-  const jsonContent = JSON.parse(response.choices[0].message.content || "{}");
-  return jsonContent?.suggestions || [];
+  if (!response.ok) {
+    throw new Error("API request failed: " + response.status);
+  }
+
+  var data: ChatCompletionResponse = await response.json();
+
+  if (
+    data.choices &&
+    data.choices[0] &&
+    data.choices[0].message &&
+    data.choices[0].message.content
+  ) {
+    try {
+      var jsonContent = JSON.parse(data.choices[0].message.content);
+      if (jsonContent.suggestions && Array.isArray(jsonContent.suggestions)) {
+        return jsonContent.suggestions;
+      }
+    } catch (e) {
+      return [];
+    }
+  }
+
+  return [];
 }

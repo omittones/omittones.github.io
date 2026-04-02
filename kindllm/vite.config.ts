@@ -1,15 +1,7 @@
 import { defineConfig } from 'vite';
-import legacy from '@vitejs/plugin-legacy';
 import { resolve } from 'path';
 
 export default defineConfig({
-  plugins: [
-    legacy({
-      targets: ['ie >= 11', 'defaults', 'not IE 11'],
-      additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
-      polyfills: ['es.promise', 'es.object.assign', 'es.array.iterator'],
-    }),
-  ],
   build: {
     outDir: 'dist',
     emptyOutDir: true,
@@ -22,11 +14,21 @@ export default defineConfig({
     target: 'es2015',
     minify: 'terser',
     terserOptions: {
-      ie8: true,
       safari10: true,
     },
   },
   esbuild: {
     target: 'es2015',
+    jsx: 'automatic',
+    jsxImportSource: 'preact',
+  },
+  resolve: {
+    alias: {
+      react: 'preact/compat',
+      'react-dom': 'preact/compat',
+      'preact/jsx-runtime': 'preact/jsx-runtime',
+      'preact/jsx-dev-runtime': 'preact/jsx-dev-runtime',
+    },
+    dedupe: ['preact', 'preact/compat', 'preact/hooks'],
   },
 });

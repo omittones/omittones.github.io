@@ -1,0 +1,46 @@
+---
+description: Always verify current date/time from external sources
+globs: **/*
+alwaysApply: true
+---
+
+# Time Awareness Rule
+
+**CRITICAL**: Do NOT rely on training data knowledge of "current" date, time, or recent events.
+
+## Requirements
+
+1. **Always verify the current date** by using WebSearch or WebFetch to check an authoritative time source
+2. **Never assume** what year/month/day it is based on training data
+3. When providing information about:
+   - Software versions
+   - API specifications
+   - Current events
+   - Recent releases
+   
+   **You MUST verify via web search first**
+
+## Verification Sources
+
+Use these sources to verify current information:
+- timeanddate.com
+- Current date websites
+- Official API documentation (via WebFetch)
+
+## Example Workflow
+
+```
+User asks: "What are the latest Claude models?"
+
+❌ BAD: Assume knowledge based on training data
+"The latest Claude models are Claude 3.5 Sonnet..."
+
+✅ GOOD: Verify first via WebSearch
+1. WebSearch for "Anthropic Claude models API current date 2026"
+2. Report actual findings with verified date
+3. "As of April 2, 2026, the latest models are..."
+```
+
+## Reminder
+
+Your training data has a cutoff. Information about versions, APIs, and current events must always be verified through web search or other external tools before being presented as fact.

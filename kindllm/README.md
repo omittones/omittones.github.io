@@ -2,6 +2,8 @@
 
 A distraction-free LLM chat app optimized for Kindle e-readers. Static site with client-side LLM integration.
 
+> **Package Manager:** This project uses [pnpm](https://pnpm.io/). Please use `pnpm` instead of `npm` or `yarn`.
+
 ## Development
 
 ```bash

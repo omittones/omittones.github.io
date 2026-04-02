@@ -1,0 +1,119 @@
+---
+description: Static site architecture guidance
+globs: **/*.{ts,tsx,html,js}
+alwaysApply: true
+---
+
+# Static Site Architecture
+
+Convert from server-rendered Hono app to pre-compiled static site.
+
+## Architecture Overview
+
+```
+Before:                    After:
+┌─────────────┐           ┌─────────────┐
+│  Hono/JSX   │           │  Static HTML  │
+│  (server)   │    →      │  (prebuilt)   │
+│  HTMX       │           │  Vanilla JS   │
+│  API routes │           │  (no build)   │
+└─────────────┘           └─────────────┘
+```
+
+## Key Changes
+
+### 1. Build-Time Rendering
+- Pre-render all JSX components to static HTML at build time
+- No server-side rendering at runtime
+- Use a build tool (Vite) to compile JSX → HTML
+
+### 2. Client-Side Logic
+- Move all interactivity to vanilla JavaScript
+- Replace HTMX with plain JS event handlers
+- No backend API calls (all client-side or use edge functions)
+
+### 3. LLM API Handling
+**Challenge**: Can't expose API keys in client-side code
+
+**Options**:
+1. **User-provided API key** - Store in localStorage, user enters their own
+2. **Proxy edge function** - Lightweight Cloudflare function (not full backend)
+3. **Remove LLM** - Make it a static chat UI only
+
+**Recommended**: Option 1 for simplicity - static site with user-managed keys
+
+## File Structure
+
+```
+src/
+  pages/           # Page components (build to HTML)
+    index.tsx
+    privacy.tsx
+  components/      # Reusable components
+    ChatBox.tsx
+    Message.tsx
+    ...
+  lib/             # Utilities (ES5 compatible)
+    storage.ts     # localStorage wrapper
+    llm-client.ts  # Client-side LLM API
+    dom.ts         # DOM manipulation helpers
+  tests/           # Test files
+public/            # Static assets
+dist/              # Build output (deploy this)
+```
+
+## Build Configuration
+
+- Use Vite with `@vitejs/plugin-legacy` for ES5 output
+- Target: IE11 / Kindle Browser compatibility
+- Output: Static HTML + bundled JS
+
+## Component Patterns
+
+```typescript
+// ❌ BAD - Server component with HTMX
+export const ChatBox = () => (
+  <form hx-post="/chat">...</form>
+);
+
+// ✅ GOOD - Static component with client hydration
+export function ChatBox() {
+  // Return HTML string or DOM element
+  return '<form id="chat-form">...</form>';
+}
+
+// ✅ GOOD - Client-side initialization
+function initChatBox() {
+  var form = document.getElementById('chat-form');
+  form.onsubmit = function(e) {
+    e.preventDefault();
+    handleSubmit(form);
+  };
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', initChatBox);
+```
+
+## State Management
+
+Use simple patterns compatible with old browsers:
+```typescript
+// Global state object (simple module pattern)
+var AppState = {
+  messages: [],
+  apiKey: localStorage.getItem('apiKey') || ''
+};
+
+// Update and persist
+function addMessage(msg) {
+  AppState.messages.push(msg);
+  renderMessages();
+}
+```
+
+## Deployment
+
+- Build: `npm run build` → outputs to `dist/`
+- Deploy `dist/` to any static host (GitHub Pages, Cloudflare Pages, etc.)
+- No server runtime required

@@ -1,0 +1,92 @@
+---
+description: Kindle user experience guidelines - second priority
+globs: **/*.{ts,tsx,html,css}
+alwaysApply: true
+---
+
+# Kindle UX Guidelines (Second Priority)
+
+After browser compatibility, Kindle usability is the top concern.
+
+## Kindle Device Constraints
+
+- E-ink display (slow refresh, no animations)
+- Limited processing power
+- Basic web browser (WebKit-based, old)
+- Physical keyboard or touch
+- Screen size: 6-7 inches typically
+- No color (grayscale only)
+
+## UI Design Rules
+
+### Visual Design
+- **NO animations/transitions** - E-ink can't handle them well
+- **NO gradients** - Hard to render on e-ink
+- **NO shadows/blur effects** - Not supported
+- **High contrast only** - Black (#000) on white (#fff), no gray text
+- **Large touch targets** - Minimum 44x44px for buttons
+- **Clear typography** - Sans-serif, minimum 16px font size
+
+### Interactions
+- **Immediate feedback** - Show response instantly, even if processing
+- **Simple navigation** - No complex gestures
+- **Keyboard shortcuts** - Support Enter to submit, Esc to close
+- **Prevent accidental actions** - Confirm on clear/delete
+
+### Layout
+```css
+/* ✅ GOOD - Simple, static layout */
+.chat-container {
+  width: 100%;
+  padding: 1rem;
+}
+
+.message {
+  border: 1px solid #000;
+  margin: 0.5rem 0;
+  padding: 1rem;
+}
+
+/* ❌ BAD - Animations, complex positioning */
+.message {
+  transition: opacity 0.3s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+```
+
+### HTML Structure
+```html
+<!-- ✅ GOOD - Semantic, simple -->
+<div class="message">
+  <strong>User:</strong> Hello
+</div>
+
+<!-- ❌ BAD - Nested, complex -->
+<div class="msg-wrapper">
+  <div class="msg-inner">
+    <span class="msg-label">User</span>
+    <span class="msg-content">Hello</span>
+  </div>
+</div>
+```
+
+## Performance for Kindle
+
+- Minimize DOM manipulations (e-ink is slow)
+- Batch updates when possible
+- Show loading indicators for LLM calls
+- Cache responses when appropriate
+- Limit message history length (keep under 50 messages)
+
+## Testing on Kindle
+
+Test on actual Kindle devices when possible:
+- Kindle Paperwhite (various generations)
+- Kindle Basic
+- Use Kindle's "Experimental Browser"
+
+## Accessibility
+
+- Ensure text is readable at arm's length
+- Provide clear visual hierarchy
+- Support font size adjustments where possible

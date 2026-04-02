@@ -1,51 +1,53 @@
-<img src="kindllm.png" width="124">
-
 # Kindllm
 
-A distraction-free LLM chat web app optimized for Kindle. The perfect companion for your book. Powered by Mixtral from Mistral AI. Mainly tested on Kindle Paperwhites.
+A distraction-free LLM chat app optimized for Kindle e-readers. Static site with client-side LLM integration.
 
-<img src="./kindllm.jpg" width="512">
+## Development
 
-Stack:
+```bash
+# Install dependencies
+pnpm install
 
-- htmx
-- Hono
-- Zod
-- Cloudflare Workers
-- Anyscale Endpoints
+# Run dev server
+pnpm dev
 
-## Usage
+# Run tests (TDD)
+pnpm test
 
-Install:
-
-```
-npm install
+# Build for production
+pnpm build
 ```
 
-Set your Anyscale Endpoints API key in wrangler.toml
+## Deployment
 
-Dev:
+Build outputs to `dist/`. Commit this folder to git for GitHub Pages hosting.
 
-```
-npm run dev
-```
-
-Deploy:
-
-```
-npm run deploy
+```bash
+pnpm build
+git add dist/
+git commit -m "Update build"
+git push
 ```
 
-Go to [https://kindllm.<ACCOUNT_NAME>.workers.dev](https://kindllm.<ACCOUNT_NAME>.workers.dev) with your Kindle web browser
+## Architecture
 
-## Why?
+- **Static site** - Pre-compiled HTML/JS, no backend required
+- **Client-side LLM** - Uses user's own API key (stored in localStorage)
+- **ES5 compatible** - Works on old Kindle browsers
+- **Test-driven** - Write tests before implementation
 
-I got annoyed constantly looking things up on my phone while reading and tried making this app a while back, but couldn't get it to work well on the old Kindle web browser.
+## Browser Compatibility
 
-Surprisingly, Amazon recently updated the web browser on some Kindles and it now seems to be good enough to run simple interactive apps like this!
+- Kindle Paperwhite (all generations)
+- Kindle Basic
+- Any browser supporting ES5
 
-## License
+## Project Structure
 
-MIT License
-
-Copyright (c) 2024 Anders Rex
+```
+src/
+  lib/           # Core utilities (storage, dom, llm-client, chat)
+  styles.css     # Global styles (ES5 compatible)
+  main.ts        # Entry point
+dist/            # Build output (commit to git for deployment)
+```

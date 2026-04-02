@@ -1,0 +1,80 @@
+---
+description: Test-driven development standards
+globs: **/*.{test.ts,spec.ts}
+alwaysApply: true
+---
+
+# Test-Driven Development (TDD)
+
+Write tests BEFORE implementation. Follow red-green-refactor cycle.
+
+## TDD Cycle
+
+1. **Red** - Write a failing test for the desired behavior
+2. **Green** - Write minimal code to make the test pass
+3. **Refactor** - Clean up while keeping tests green
+
+## Test File Organization
+
+```
+src/
+  components/
+    ChatBox.tsx
+    ChatBox.test.tsx  # Co-located test
+  utils/
+    format.ts
+    format.test.ts    # Co-located test
+```
+
+## Test Structure
+
+```typescript
+// ❌ BAD - tests after implementation, vague descriptions
+test('works', () => { ... });
+
+// ✅ GOOD - descriptive, behavior-focused
+describe('ChatBox', function() {
+  describe('when user submits a message', function() {
+    it('should display the message in the chat history', function() {
+      // Arrange
+      var container = document.createElement('div');
+      
+      // Act
+      ChatBox.render(container);
+      submitMessage(container, 'Hello');
+      
+      // Assert
+      expect(container.textContent).toContain('User: Hello');
+    });
+  });
+});
+```
+
+## Test Coverage Requirements
+
+- Test all user-facing behaviors
+- Test edge cases (empty input, long messages, network failures)
+- Test Kindle-specific interactions (keyboard, navigation)
+
+## Mocking External Dependencies
+
+```typescript
+// Mock LLM API calls
+var mockCallCount = 0;
+global.XMLHttpRequest = function() {
+  this.open = function() {};
+  this.send = function() {};
+  this.onreadystatechange = null;
+  mockCallCount++;
+};
+```
+
+## Assertions
+
+Use explicit assertions that read like documentation:
+```typescript
+// ✅ GOOD
+expect(result.isVisible).toBe(true);
+expect(messages.length).toBe(3);
+expect(error.message).toContain('Invalid input');
+```

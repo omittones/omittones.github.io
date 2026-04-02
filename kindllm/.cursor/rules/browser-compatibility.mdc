@@ -1,0 +1,97 @@
+---
+description: Browser compatibility standards - highest priority
+globs: **/*.{ts,tsx,js}
+alwaysApply: true
+---
+
+# Browser Compatibility (Highest Priority)
+
+Kindle devices use old browsers. Code must work on ES5/ES6 browsers without modern features.
+
+## Constraints
+
+- **NO async/await** - Use Promises with `.then()`/.catch()` instead
+- **NO arrow functions** in output - Use traditional `function` declarations
+- **NO template literals** - Use string concatenation
+- **NO destructuring** - Access properties directly
+- **NO spread operators** - Use `Object.assign()` or manual copying
+- **NO Map/Set/WeakMap** - Use plain objects and arrays
+- **NO fetch API** - Use XMLHttpRequest (XHR)
+- **NO CSS Grid/Flexbox** (limited support) - Use floats, inline-block, or tables
+- **NO CSS variables** - Use hardcoded values
+- **NO ES6+ Array methods** (find, findIndex, includes) - Use indexOf, filter, loops
+
+## Required Patterns
+
+### AJAX Requests
+```typescript
+// ❌ BAD - fetch API
+fetch('/api').then(r => r.json())
+
+// ✅ GOOD - XMLHttpRequest
+function makeRequest(url: string, callback: (data: any) => void): void {
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url, true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      callback(JSON.parse(xhr.responseText));
+    }
+  };
+  xhr.send();
+}
+```
+
+### Functions
+```typescript
+// ❌ BAD - arrow functions, async
+const getData = async () => { ... }
+
+// ✅ GOOD - traditional functions
+function getData() { ... }
+```
+
+### Promises (if needed)
+```typescript
+// ❌ BAD - async/await
+const data = await getData();
+
+// ✅ GOOD - Promise chains
+getData().then(function(data) {
+  processData(data);
+}).catch(function(err) {
+  handleError(err);
+});
+```
+
+### Object Creation
+```typescript
+// ❌ BAD - spread operator
+const newObj = { ...oldObj, key: value };
+
+// ✅ GOOD - Object.assign
+var newObj = Object.assign({}, oldObj, { key: value });
+```
+
+### Array Operations
+```typescript
+// ❌ BAD - ES6 methods
+const found = arr.find(x => x.id === 1);
+
+// ✅ GOOD - ES5 compatible
+var found = null;
+for (var i = 0; i < arr.length; i++) {
+  if (arr[i].id === 1) {
+    found = arr[i];
+    break;
+  }
+}
+```
+
+## Testing Compatibility
+
+Always verify compiled output in `dist/` folder contains no:
+- `const`/`let` (should be `var`)
+- Arrow functions (`=>`)
+- Template literals (backticks)
+- Classes (should be function constructors)
+- `async`/`await` keywords

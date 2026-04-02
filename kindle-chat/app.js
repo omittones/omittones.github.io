@@ -100,12 +100,19 @@ function sendMessage() {
   var btn = document.getElementById('send-btn');
   btn.disabled = true;
 
+  var streamHandle = createStreamingMessage();
+  var firstChunk = true;
+
   callClaude(API_KEY, getModel(), conversation,
-    function(reply) {
+    function(chunk) {
+      if (firstChunk) { firstChunk = false; setStatus(''); }
+      streamHandle.appendChunk(chunk);
+    },
+    function(fullText) {
       btn.disabled = false;
-      conversation.push({ role: 'assistant', content: reply });
+      streamHandle.finalize(fullText);
+      conversation.push({ role: 'assistant', content: fullText });
       saveConversation();
-      appendMessage('assistant', reply);
       setStatus('');
     },
     function(errMsg) {

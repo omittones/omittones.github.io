@@ -41,6 +41,8 @@ export function About({ onBack, debugMode }: AboutProps) {
   var [pasteUrl, setPasteUrl] = useState<string | null>(null);
   var [uploadError, setUploadError] = useState<string | null>(null);
   var [isUploading, setIsUploading] = useState(false);
+  var [clearConfirmOpen, setClearConfirmOpen] = useState(false);
+  var [uploadConfirmOpen, setUploadConfirmOpen] = useState(false);
 
   var bump = useCallback(function () {
     setRefreshKey(function (k) {
@@ -69,34 +71,38 @@ export function About({ onBack, debugMode }: AboutProps) {
     [bump]
   );
 
-  var handleClear = useCallback(
+  var handleClearClick = useCallback(
     function (e: Event) {
       e.preventDefault();
-      if (typeof window !== "undefined" && window.confirm("Clear diagnostic log on this device?")) {
-        logger("about").info("diagnostics log cleared by user");
-        clearDiagnosticLog();
-        setPasteUrl(null);
-        setUploadError(null);
-        bump();
-      }
+      setUploadConfirmOpen(false);
+      setClearConfirmOpen(true);
+    },
+    []
+  );
+
+  var handleClearCancel = useCallback(function (e: Event) {
+    e.preventDefault();
+    setClearConfirmOpen(false);
+  }, []);
+
+  var handleClearConfirm = useCallback(
+    function (e: Event) {
+      e.preventDefault();
+      setClearConfirmOpen(false);
+      logger("about").info("diagnostics log cleared by user");
+      clearDiagnosticLog();
+      setPasteUrl(null);
+      setUploadError(null);
+      bump();
     },
     [bump]
   );
 
-  var handleUpload = useCallback(
-    async function (e: Event) {
-      e.preventDefault();
+  var runUpload = useCallback(
+    async function () {
       logger("about").debug("diagnostics upload start");
       setUploadError(null);
       setPasteUrl(null);
-      var ok =
-        typeof window !== "undefined" &&
-        window.confirm(
-          "Upload redacted diagnostic log to dpaste.com? Recent chat text may still appear. Continue?"
-        );
-      if (!ok) {
-        return;
-      }
       setIsUploading(true);
       try {
         var url = await uploadContentToDpaste(getRedactedDiagnosticLogText(), {
@@ -118,6 +124,29 @@ export function About({ onBack, debugMode }: AboutProps) {
       }
     },
     [bump]
+  );
+
+  var handleUploadClick = useCallback(
+    function (e: Event) {
+      e.preventDefault();
+      setClearConfirmOpen(false);
+      setUploadConfirmOpen(true);
+    },
+    []
+  );
+
+  var handleUploadCancel = useCallback(function (e: Event) {
+    e.preventDefault();
+    setUploadConfirmOpen(false);
+  }, []);
+
+  var handleUploadConfirm = useCallback(
+    async function (e: Event) {
+      e.preventDefault();
+      setUploadConfirmOpen(false);
+      await runUpload();
+    },
+    [runUpload]
   );
 
   return (
@@ -158,13 +187,49 @@ export function About({ onBack, debugMode }: AboutProps) {
             <button type="button" className="footer-button" onClick={handleCopy}>
               Copy redacted log
             </button>
-            <button type="button" className="footer-button" onClick={handleUpload} disabled={isUploading}>
+            <button
+              type="button"
+              className="footer-button"
+              onClick={handleUploadClick}
+              disabled={isUploading}
+            >
               {isUploading ? "Uploading…" : "Upload to dpaste"}
             </button>
-            <button type="button" className="footer-button" onClick={handleClear}>
+            <button type="button" className="footer-button" onClick={handleClearClick} disabled={isUploading}>
               Clear log
             </button>
           </div>
+          {clearConfirmOpen && (
+            <div className="about-inline-confirm" role="region" aria-label="Confirm clear log">
+              <p className="about-inline-confirm-text">
+                Remove all diagnostic lines from this device? This cannot be undone.
+              </p>
+              <div className="about-diagnostics-actions">
+                <button type="button" className="footer-button" onClick={handleClearCancel}>
+                  Cancel
+                </button>
+                <button type="button" className="footer-button" onClick={handleClearConfirm}>
+                  Yes, clear log
+                </button>
+              </div>
+            </div>
+          )}
+          {uploadConfirmOpen && (
+            <div className="about-inline-confirm" role="region" aria-label="Confirm upload">
+              <p className="about-inline-confirm-text">
+                Upload the redacted diagnostic log to dpaste.com (expires in one day). Recent chat text may
+                still appear in the paste.
+              </p>
+              <div className="about-diagnostics-actions">
+                <button type="button" className="footer-button" onClick={handleUploadCancel} disabled={isUploading}>
+                  Cancel
+                </button>
+                <button type="button" className="footer-button" onClick={handleUploadConfirm} disabled={isUploading}>
+                  Upload now
+                </button>
+              </div>
+            </div>
+          )}
           {pasteUrl && (
             <p style={{ marginTop: "1rem", wordBreak: "break-all" }}>
               Paste URL:{" "}

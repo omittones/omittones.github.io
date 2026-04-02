@@ -31,7 +31,7 @@ After browser compatibility, Kindle usability is the top concern.
 - **Immediate feedback** - Show response instantly, even if processing
 - **Simple navigation** - No complex gestures
 - **Keyboard shortcuts** - Support Enter to submit, Esc to close
-- **Prevent accidental actions** - Confirm on clear/delete
+- **Prevent accidental actions** - Confirm destructive actions with **in-page** controls (not `confirm` / `alert` / `prompt` — see browser compatibility rule)
 
 ### Layout
 ```css

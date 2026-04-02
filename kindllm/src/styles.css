@@ -294,6 +294,18 @@ button:active {
   min-height: 200px;
 }
 
+/* In-page confirm (no window.confirm — Kindle) */
+.about-inline-confirm {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #000;
+}
+
+.about-inline-confirm-text {
+  margin: 0 0 1rem 0;
+  line-height: 1.4;
+}
+
 /* Privacy view */
 .privacy-container {
   padding: 1rem;

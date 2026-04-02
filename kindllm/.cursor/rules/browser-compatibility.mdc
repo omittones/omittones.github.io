@@ -7,3 +7,9 @@ alwaysApply: true
 # Browser Compatibility (Highest Priority)
 
 Kindle devices use old browsers. The supported feature list of the target browser is documented in [this document](../../supported-browser-features.txt).
+
+## Blocking dialogs
+
+Do **not** use `window.confirm`, `window.alert`, or `window.prompt`. On Kindle’s experimental browser they are unreliable or non-functional.
+
+Use **in-page UI** instead: plain text plus buttons (for example a two-step “Cancel” / “Yes, proceed” strip) so the user confirms destructive or sensitive actions without blocking native dialogs.

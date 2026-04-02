@@ -274,10 +274,17 @@ button:active {
 }
 
 .about-diagnostics-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
   margin: 1rem 0;
+}
+
+.about-diagnostics-actions .footer-button {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  box-sizing: border-box;
+}
+
+.about-diagnostics-actions .footer-button:last-child {
+  margin-bottom: 0;
 }
 
 .about-diagnostics-label {

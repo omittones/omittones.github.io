@@ -8,6 +8,7 @@ import {
   DEFAULT_MODEL,
   AVAILABLE_MODELS,
 } from "./providers";
+import { getTypingAutocomplete as anthropicGetTypingAutocomplete } from "./providers/anthropic";
 import { logger } from "./diagnostic-log";
 
 export { DEFAULT_MODEL, AVAILABLE_MODELS, getModelById };
@@ -56,4 +57,16 @@ export async function getSuggestions(
     historyLen: messages.length,
   });
   return provider.getSuggestions(apiKey, model.id, messages);
+}
+
+/**
+ * Generate typing autocomplete completions using Haiku (fast, cheap).
+ */
+export async function getTypingAutocomplete(
+  apiKey: string,
+  partialText: string,
+  messages: Message[]
+): Promise<string[]> {
+  logger("llm").debug("getTypingAutocomplete", { partialLen: partialText.length });
+  return anthropicGetTypingAutocomplete(apiKey, partialText, messages);
 }

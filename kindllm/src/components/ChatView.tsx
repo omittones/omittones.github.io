@@ -6,6 +6,7 @@ import { Message } from "./Message";
 import { Message as MessageType } from "../storage";
 import { AVAILABLE_MODELS, DEFAULT_MODEL } from "../providers";
 import { logger } from "../diagnostic-log";
+import { FEATURE_CHAT_AUTOSCROLL } from "../feature-flags";
 
 interface ChatViewProps {
   messages: MessageType[];
@@ -83,11 +84,17 @@ export function ChatView({
   }, []);
 
   var handleMessagesScroll = useCallback(function () {
+    if (!FEATURE_CHAT_AUTOSCROLL) {
+      return;
+    }
     stickToBottomRef.current = isNearBottom();
   }, [isNearBottom]);
 
   useLayoutEffect(
     function () {
+      if (!FEATURE_CHAT_AUTOSCROLL) {
+        return;
+      }
       if (!apiKey || !messagesContainerRef.current) {
         return;
       }
@@ -99,6 +106,9 @@ export function ChatView({
   // Scroll to bottom only when the user sends — assistant replies are often long; keep scroll position.
   useEffect(
     function () {
+      if (!FEATURE_CHAT_AUTOSCROLL) {
+        return;
+      }
       if (messages.length === 0) {
         return;
       }
@@ -126,6 +136,9 @@ export function ChatView({
   // Scroll to bottom as streaming content grows only while the view is already pinned to the bottom.
   useEffect(
     function () {
+      if (!FEATURE_CHAT_AUTOSCROLL) {
+        return;
+      }
       if (streamingContent === null || streamingContent === "") return;
       if (!stickToBottomRef.current) return;
       if (messagesEndRef.current) {

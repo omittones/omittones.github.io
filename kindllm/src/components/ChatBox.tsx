@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "preact/hooks";
+import { useDebouncedCallback } from "use-debounce";
 import { Suggestions } from "./Suggestions";
 import { Message } from "../storage";
 import { getTypingAutocomplete } from "../llm";
@@ -34,21 +35,42 @@ export function ChatBox({
   var [autocompletions, setAutocompletions] = useState<string[]>([]);
   var [isLoadingAutocomplete, setIsLoadingAutocomplete] = useState(false);
 
-  // Generation counter: incremented on each new input, lets us discard stale responses
+  // Generation counter: incremented on each new input to discard stale in-flight responses
   var genRef = useRef(0);
-  var debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  var fetchAutocomplete = useDebouncedCallback(
+    function (value: string, gen: number) {
+      getTypingAutocomplete(apiKey, value.trim(), messages)
+        .then(function (completions) {
+          if (gen !== genRef.current) {
+            return;
+          }
+          logger("chatBox").debug("autocomplete results", { n: completions.length });
+          setAutocompletions(completions);
+          setIsLoadingAutocomplete(false);
+        })
+        .catch(function (err) {
+          if (gen !== genRef.current) {
+            return;
+          }
+          logger("chatBox").warn("autocomplete error", {
+            message: err instanceof Error ? err.message : String(err),
+          });
+          setAutocompletions([]);
+          setIsLoadingAutocomplete(false);
+        });
+    },
+    AUTOCOMPLETE_DEBOUNCE_MS
+  );
 
   // Clear autocomplete chips whenever the input is cleared (after send)
   useEffect(
     function () {
       if (!message) {
+        genRef.current++;
+        fetchAutocomplete.cancel();
         setAutocompletions([]);
         setIsLoadingAutocomplete(false);
-        genRef.current++;
-        if (debounceRef.current !== null) {
-          clearTimeout(debounceRef.current);
-          debounceRef.current = null;
-        }
       }
     },
     [message]
@@ -78,71 +100,28 @@ export function ChatBox({
       var value = target.value;
       setMessage(value);
 
-      // Cancel any pending debounce
-      if (debounceRef.current !== null) {
-        clearTimeout(debounceRef.current);
-        debounceRef.current = null;
-      }
-
       if (!value || value.trim().length < AUTOCOMPLETE_MIN_CHARS || !apiKey) {
+        genRef.current++;
+        fetchAutocomplete.cancel();
         setAutocompletions([]);
         setIsLoadingAutocomplete(false);
         return;
       }
 
-      // Bump generation so any in-flight request from before will be discarded
       genRef.current++;
-      var thisGen = genRef.current;
-
       setIsLoadingAutocomplete(true);
-
-      debounceRef.current = setTimeout(function () {
-        debounceRef.current = null;
-        // Check generation is still current before firing
-        if (thisGen !== genRef.current) {
-          return;
-        }
-        getTypingAutocomplete(apiKey, value.trim(), messages)
-          .then(function (completions) {
-            if (thisGen !== genRef.current) {
-              // A newer request has been issued; discard this result
-              return;
-            }
-            logger("chatBox").debug("autocomplete results", {
-              n: completions.length,
-            });
-            setAutocompletions(completions);
-            setIsLoadingAutocomplete(false);
-          })
-          .catch(function (err) {
-            if (thisGen !== genRef.current) {
-              return;
-            }
-            logger("chatBox").warn("autocomplete error", {
-              message: err instanceof Error ? err.message : String(err),
-            });
-            setAutocompletions([]);
-            setIsLoadingAutocomplete(false);
-          });
-      }, AUTOCOMPLETE_DEBOUNCE_MS);
+      fetchAutocomplete(value, genRef.current);
     },
-    [apiKey, messages]
+    [apiKey, messages, fetchAutocomplete]
   );
 
-  var handleAutocompleteClick = useCallback(
-    function (completion: string) {
-      logger("chatBox").debug("autocomplete chip click", { len: completion.length });
-      setMessage(completion);
-      setAutocompletions([]);
-      // Cancel any pending debounce so we don't re-trigger
-      genRef.current++;
-      if (debounceRef.current !== null) {
-        clearTimeout(debounceRef.current);
-        debounceRef.current = null;
-      }
-    },
-    []
-  );
+  var handleAutocompleteClick = useCallback(function (completion: string) {
+    logger("chatBox").debug("autocomplete chip click", { len: completion.length });
+    genRef.current++;
+    fetchAutocomplete.cancel();
+    setMessage(completion);
+    setAutocompletions([]);
+  }, [fetchAutocomplete]);
 
   var showAutocomplete =
     !isLoading && (isLoadingAutocomplete || autocompletions.length > 0);

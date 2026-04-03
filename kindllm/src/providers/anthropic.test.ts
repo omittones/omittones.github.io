@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { anthropicProvider } from "./anthropic";
+import { anthropicProvider, getTypingAutocomplete } from "./anthropic";
 import { Message } from "./index";
 
 describe("anthropic provider", function () {
@@ -214,6 +214,36 @@ describe("anthropic provider", function () {
       expect(result).toEqual([]);
     });
 
+    it("should parse suggestions wrapped in markdown json fence", async function () {
+      var inner = JSON.stringify({
+        suggestions: ["One?", "Two?", "Three?"],
+      });
+      var fenced = "```json\n" + inner + "\n```";
+      var mockResponse = {
+        ok: true,
+        json: function () {
+          return Promise.resolve({
+            content: [{ type: "text", text: fenced }],
+            role: "assistant",
+          });
+        },
+      };
+      (global.fetch as any).mockResolvedValue(mockResponse);
+
+      var messages: Message[] = [
+        { role: "user", content: "Q" },
+        { role: "assistant", content: "A" },
+      ];
+
+      var result = await anthropicProvider.getSuggestions(
+        "key",
+        "claude-sonnet-4-6",
+        messages
+      );
+
+      expect(result).toEqual(["One?", "Two?", "Three?"]);
+    });
+
     it("should limit to 3 suggestions", async function () {
       var mockResponse = {
         ok: true,
@@ -266,6 +296,35 @@ describe("anthropic provider", function () {
       );
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("getTypingAutocomplete", function () {
+    it("should parse completions wrapped in markdown json fence", async function () {
+      var inner = JSON.stringify({
+        completions: ["hello world", "hello there", "hello friend"],
+      });
+      var fenced = "```json\n" + inner + "\n```";
+      var mockResponse = {
+        ok: true,
+        json: function () {
+          return Promise.resolve({
+            content: [{ type: "text", text: fenced }],
+            role: "assistant",
+          });
+        },
+      };
+      (global.fetch as any).mockResolvedValue(mockResponse);
+
+      var result = await getTypingAutocomplete("key", "hel", []);
+
+      expect(result).toEqual(["hello world", "hello there", "hello friend"]);
+    });
+
+    it("should return empty for short partial text", async function () {
+      var result = await getTypingAutocomplete("key", "he", []);
+      expect(result).toEqual([]);
+      expect(global.fetch).not.toHaveBeenCalled();
     });
   });
 });

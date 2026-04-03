@@ -4,9 +4,13 @@ import { Suggestions } from "./Suggestions";
 import { Message } from "../storage";
 import { getTypingAutocomplete } from "../llm";
 import { logger } from "../diagnostic-log";
+import {
+  chipLabelAfterBase,
+  shouldSkipAutocompleteRefetch,
+} from "../utils/autocomplete-chip-label";
 
-// Debounce delay in ms before calling autocomplete API
-var AUTOCOMPLETE_DEBOUNCE_MS = 700;
+// Debounce delay in ms before calling autocomplete API (Kindle: avoid noisy refreshes)
+export var AUTOCOMPLETE_DEBOUNCE_MS = 1200;
 // Minimum characters before triggering autocomplete
 var AUTOCOMPLETE_MIN_CHARS = 3;
 
@@ -33,6 +37,7 @@ export function ChatBox({
 }: ChatBoxProps) {
   var [message, setMessage] = useState("");
   var [autocompletions, setAutocompletions] = useState<string[]>([]);
+  var [autocompleteLabelBase, setAutocompleteLabelBase] = useState("");
   var [isLoadingAutocomplete, setIsLoadingAutocomplete] = useState(false);
 
   // Generation counter: incremented on each new input to discard stale in-flight responses
@@ -47,6 +52,7 @@ export function ChatBox({
           }
           logger("chatBox").debug("autocomplete results", { n: completions.length });
           setAutocompletions(completions);
+          setAutocompleteLabelBase(value.trim());
           setIsLoadingAutocomplete(false);
         })
         .catch(function (err) {
@@ -57,6 +63,7 @@ export function ChatBox({
             message: err instanceof Error ? err.message : String(err),
           });
           setAutocompletions([]);
+          setAutocompleteLabelBase("");
           setIsLoadingAutocomplete(false);
         });
     },
@@ -70,6 +77,7 @@ export function ChatBox({
         genRef.current++;
         fetchAutocomplete.cancel();
         setAutocompletions([]);
+        setAutocompleteLabelBase("");
         setIsLoadingAutocomplete(false);
       }
     },
@@ -84,6 +92,7 @@ export function ChatBox({
         onSendMessage(message);
         setMessage("");
         setAutocompletions([]);
+        setAutocompleteLabelBase("");
       } else {
         logger("chatBox").debug("submit blocked", {
           empty: !message.trim(),
@@ -104,7 +113,20 @@ export function ChatBox({
         genRef.current++;
         fetchAutocomplete.cancel();
         setAutocompletions([]);
+        setAutocompleteLabelBase("");
         setIsLoadingAutocomplete(false);
+        return;
+      }
+
+      var trimmed = value.trim();
+      if (
+        shouldSkipAutocompleteRefetch(
+          trimmed,
+          autocompleteLabelBase,
+          autocompletions
+        )
+      ) {
+        fetchAutocomplete.cancel();
         return;
       }
 
@@ -112,7 +134,7 @@ export function ChatBox({
       setIsLoadingAutocomplete(true);
       fetchAutocomplete(value, genRef.current);
     },
-    [apiKey, messages, fetchAutocomplete]
+    [apiKey, messages, fetchAutocomplete, autocompleteLabelBase, autocompletions]
   );
 
   var handleAutocompleteClick = useCallback(function (completion: string) {
@@ -121,20 +143,14 @@ export function ChatBox({
     fetchAutocomplete.cancel();
     setMessage(completion);
     setAutocompletions([]);
+    setAutocompleteLabelBase("");
   }, [fetchAutocomplete]);
 
   var showAutocomplete =
     !isLoading && (isLoadingAutocomplete || autocompletions.length > 0);
 
-  // Strip the already-typed prefix from chip labels to save screen space.
-  // The full completion is still used when the chip is tapped.
-  var typedPrefix = message.trim().toLowerCase();
-  function getChipLabel(completion: string): string {
-    if (typedPrefix && completion.toLowerCase().indexOf(typedPrefix) === 0) {
-      return completion.slice(typedPrefix.length).replace(/^\s+/, "");
-    }
-    return completion;
-  }
+  // Chip labels use the query from when completions were fetched, not live input,
+  // so labels do not shrink on every keystroke (Kindle UX).
 
   return (
     <form onSubmit={handleSubmit} style={{ width: "100%" }}>
@@ -153,7 +169,7 @@ export function ChatBox({
                   handleAutocompleteClick(completion);
                 }}
               >
-                {getChipLabel(completion)}
+                {chipLabelAfterBase(completion, autocompleteLabelBase)}
               </button>
             );
           })}

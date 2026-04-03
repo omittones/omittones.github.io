@@ -37,6 +37,32 @@ interface AnthropicResponse {
   };
 }
 
+/**
+ * Models often wrap JSON in markdown fences despite instructions; strip ``` / ```json
+ * so JSON.parse succeeds.
+ */
+function stripMarkdownJsonFence(raw: string): string {
+  var s = raw.trim();
+  if (s.length < 3 || s.slice(0, 3) !== "```") {
+    return s;
+  }
+  s = s.slice(3);
+  var nl = s.indexOf("\n");
+  var firstLine = nl === -1 ? s : s.slice(0, nl);
+  if (
+    nl !== -1 &&
+    firstLine.indexOf("{") === -1 &&
+    firstLine.indexOf("[") === -1
+  ) {
+    s = s.slice(nl + 1);
+  }
+  s = s.replace(/\s+$/, "");
+  if (s.length >= 3 && s.slice(-3) === "```") {
+    s = s.slice(0, -3).replace(/\s+$/, "");
+  }
+  return s.trim();
+}
+
 export const anthropicProvider: LLMProvider = {
   id: "anthropic",
   name: "Anthropic",
@@ -184,7 +210,8 @@ export const anthropicProvider: LLMProvider = {
       data.content[0].text
     ) {
       try {
-        var jsonContent = JSON.parse(data.content[0].text);
+        var suggestionsText = stripMarkdownJsonFence(data.content[0].text);
+        var jsonContent = JSON.parse(suggestionsText);
         if (
           jsonContent.suggestions &&
           Array.isArray(jsonContent.suggestions)
@@ -280,7 +307,8 @@ export async function getTypingAutocomplete(
     data.content[0].text
   ) {
     try {
-      var jsonContent = JSON.parse(data.content[0].text);
+      var autocompleteText = stripMarkdownJsonFence(data.content[0].text);
+      var jsonContent = JSON.parse(autocompleteText);
       if (
         jsonContent.completions &&
         Array.isArray(jsonContent.completions)

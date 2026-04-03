@@ -1,20 +1,28 @@
 ---
-description: Test-driven development standards
-globs: **/*.{test.ts,spec.ts}
+description: Test-driven development — write tests before implementation (red-green-refactor)
+globs: src/**/*
 alwaysApply: true
 ---
 
 # Test-Driven Development (TDD)
 
-Write tests BEFORE implementation. Follow red-green-refactor cycle.
+**Order is mandatory for behavior changes:** add or update tests **first**, see them **fail (red)**, then implement **just enough** to pass **(green)**, then refactor. Do **not** implement production code first and add tests only afterward unless the user explicitly asks for that order (e.g. spike or exploratory work).
 
-## TDD Cycle
+## TDD cycle (strict)
 
-1. **Red** - Write a failing test for the desired behavior
-2. **Green** - Write minimal code to make the test pass
-3. **Refactor** - Clean up while keeping tests green
+1. **Red** — Write a test that describes the desired behavior (or reproduces the bug). Run the suite; the new test must **fail** for the right reason.
+2. **Green** — Write the **minimal** production code that makes the test pass.
+3. **Refactor** — Improve clarity and structure while keeping tests green.
 
-## Test File Organization
+Skipping step 1 or implementing before a failing test is **not** TDD; call it out and default back to red-first unless the user overrides.
+
+## What this means for agents
+
+- When fixing a bug: reproduce it in a test (or extend an existing one), confirm red, then fix.
+- When adding a feature: define acceptance as tests, confirm red, then implement.
+- When the user only asks for a test or only for code with no test request, follow their scope; otherwise prefer red-first.
+
+## Test file organization
 
 ```
 src/
@@ -26,7 +34,7 @@ src/
     format.test.ts    # Co-located test
 ```
 
-## Test Structure
+## Test structure
 
 ```typescript
 // ❌ BAD - tests after implementation, vague descriptions
@@ -38,11 +46,11 @@ describe('ChatBox', function() {
     it('should display the message in the chat history', function() {
       // Arrange
       var container = document.createElement('div');
-      
+
       // Act
       ChatBox.render(container);
       submitMessage(container, 'Hello');
-      
+
       // Assert
       expect(container.textContent).toContain('User: Hello');
     });
@@ -50,13 +58,13 @@ describe('ChatBox', function() {
 });
 ```
 
-## Test Coverage Requirements
+## Test coverage requirements
 
 - Test all user-facing behaviors
 - Test edge cases (empty input, long messages, network failures)
 - Test Kindle-specific interactions (keyboard, navigation)
 
-## Mocking External Dependencies
+## Mocking external dependencies
 
 ```typescript
 // Mock LLM API calls
@@ -72,6 +80,7 @@ global.XMLHttpRequest = function() {
 ## Assertions
 
 Use explicit assertions that read like documentation:
+
 ```typescript
 // ✅ GOOD
 expect(result.isVisible).toBe(true);

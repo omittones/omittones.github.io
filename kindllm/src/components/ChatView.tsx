@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from "preact/hooks";
+import { useRef, useEffect, useLayoutEffect, useState, useCallback } from "preact/hooks";
 import { ChatBox } from "./ChatBox";
 import { Footer } from "./Footer";
 import { Logo } from "./Logo";
@@ -51,6 +51,9 @@ export function ChatView({
   onRetrySuggestions,
 }: ChatViewProps) {
   var messagesEndRef = useRef<HTMLDivElement>(null);
+  var messagesContainerRef = useRef<HTMLDivElement>(null);
+  /** When true, streaming / growth may scroll the list; false if the user left the bottom. */
+  var stickToBottomRef = useRef(true);
   var [dpasteCode, setDpasteCode] = useState<string>("");
   var [showModelSelector, setShowModelSelector] = useState<boolean>(false);
 
@@ -69,6 +72,30 @@ export function ChatView({
     [apiKey, messages.length]
   );
 
+  var BOTTOM_THRESHOLD_PX = 80;
+
+  var isNearBottom = useCallback(function () {
+    var el = messagesContainerRef.current;
+    if (!el) {
+      return true;
+    }
+    return el.scrollHeight - el.scrollTop - el.clientHeight <= BOTTOM_THRESHOLD_PX;
+  }, []);
+
+  var handleMessagesScroll = useCallback(function () {
+    stickToBottomRef.current = isNearBottom();
+  }, [isNearBottom]);
+
+  useLayoutEffect(
+    function () {
+      if (!apiKey || !messagesContainerRef.current) {
+        return;
+      }
+      stickToBottomRef.current = isNearBottom();
+    },
+    [apiKey, messages.length, isNearBottom]
+  );
+
   // Scroll to bottom only when the user sends — assistant replies are often long; keep scroll position.
   useEffect(
     function () {
@@ -82,6 +109,7 @@ export function ChatView({
       if (messagesEndRef.current) {
         try {
           messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+          stickToBottomRef.current = true;
           logger("chatView").debug("scrollIntoView(end) after user message", {
             messageCount: messages.length,
           });
@@ -95,10 +123,11 @@ export function ChatView({
     [messages]
   );
 
-  // Scroll to bottom as streaming content grows
+  // Scroll to bottom as streaming content grows only while the view is already pinned to the bottom.
   useEffect(
     function () {
       if (streamingContent === null || streamingContent === "") return;
+      if (!stickToBottomRef.current) return;
       if (messagesEndRef.current) {
         try {
           messagesEndRef.current.scrollIntoView({ behavior: "auto" });
@@ -229,7 +258,11 @@ export function ChatView({
 
   return (
     <div className="chat-container">
-      <div className="messages-container">
+      <div
+        ref={messagesContainerRef}
+        className="messages-container"
+        onScroll={handleMessagesScroll}
+      >
         <div style={{ margin: "0 auto" }}>
           <Logo />
         </div>

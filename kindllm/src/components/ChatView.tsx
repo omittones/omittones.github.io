@@ -302,6 +302,8 @@ export function ChatView({
         onRetrySuggestions={onRetrySuggestions}
         isLoading={isLoading}
         isLoadingSuggestions={isLoadingSuggestions}
+        apiKey={apiKey}
+        messages={messages}
       />
       {debugMode && (
         <p className="chat-debug-indicator" role="status">

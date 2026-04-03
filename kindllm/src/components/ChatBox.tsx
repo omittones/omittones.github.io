@@ -126,6 +126,16 @@ export function ChatBox({
   var showAutocomplete =
     !isLoading && (isLoadingAutocomplete || autocompletions.length > 0);
 
+  // Strip the already-typed prefix from chip labels to save screen space.
+  // The full completion is still used when the chip is tapped.
+  var typedPrefix = message.trim().toLowerCase();
+  function getChipLabel(completion: string): string {
+    if (typedPrefix && completion.toLowerCase().indexOf(typedPrefix) === 0) {
+      return completion.slice(typedPrefix.length).replace(/^\s+/, "");
+    }
+    return completion;
+  }
+
   return (
     <form onSubmit={handleSubmit} style={{ width: "100%" }}>
       {showAutocomplete && (
@@ -143,7 +153,7 @@ export function ChatBox({
                   handleAutocompleteClick(completion);
                 }}
               >
-                {completion}
+                {getChipLabel(completion)}
               </button>
             );
           })}

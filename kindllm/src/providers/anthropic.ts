@@ -123,6 +123,98 @@ export const anthropicProvider: LLMProvider = {
     return "";
   },
 
+  async streamNextMessage(
+    apiKey: string,
+    modelId: string,
+    messages: Message[],
+    newMessage: string,
+    onChunk: (chunk: string) => void
+  ): Promise<string> {
+    var messageHistory: AnthropicMessage[] = [];
+    for (var i = 0; i < messages.length; i++) {
+      var msg = messages[i];
+      if (msg.role === "user" || msg.role === "assistant") {
+        messageHistory.push({ role: msg.role, content: msg.content });
+      }
+    }
+    messageHistory.push({ role: "user", content: newMessage });
+
+    var systemPrompt =
+      "You are a helpful assistant on a Kindle e-reader, called KindLLM2. You get straight to the point with a short answer and a pleasant demeanor.";
+
+    logger("provider.anthropic").debug("stream request", {
+      model: modelId,
+      msgCount: messageHistory.length,
+    });
+
+    var response = await fetch(BASE_URL + "/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": API_VERSION,
+        "anthropic-dangerous-direct-browser-access": "true",
+      },
+      body: JSON.stringify({
+        model: modelId,
+        messages: messageHistory,
+        system: systemPrompt,
+        max_tokens: 4096,
+        stream: true,
+      }),
+    });
+
+    if (!response.ok) {
+      var errorText = "";
+      try { errorText = await response.text(); } catch (e) { errorText = "Unknown error"; }
+      logger("provider.anthropic").error("stream HTTP error", { status: response.status });
+      throw new Error("Anthropic API error: " + response.status + " - " + errorText);
+    }
+
+    var reader = response.body!.getReader();
+    var decoder = new TextDecoder();
+    var lineBuffer = "";
+    var accumulated = "";
+
+    var pump: () => Promise<void> = async function () {
+      var result = await reader.read();
+      if (result.done) {
+        logger("provider.anthropic").info("stream done", { outLen: accumulated.length });
+        return;
+      }
+
+      lineBuffer += decoder.decode(result.value, { stream: true });
+      var lines = lineBuffer.split("\n");
+      lineBuffer = lines.pop()!;
+
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        if (line.indexOf("data: ") !== 0) continue;
+        var raw = line.slice(6).trim();
+        if (raw === "[DONE]") continue;
+        try {
+          var evt = JSON.parse(raw);
+          if (
+            evt.type === "content_block_delta" &&
+            evt.delta &&
+            evt.delta.type === "text_delta"
+          ) {
+            accumulated += evt.delta.text;
+            onChunk(evt.delta.text);
+          }
+        } catch (e) {
+          logger("provider.anthropic").warn("stream SSE parse error", {
+            message: e instanceof Error ? e.message : String(e),
+          });
+        }
+      }
+      return pump();
+    };
+
+    await pump();
+    return accumulated;
+  },
+
   async getSuggestions(
     apiKey: string,
     modelId: string,

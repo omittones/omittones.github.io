@@ -13,6 +13,37 @@ import { logger } from "./diagnostic-log";
 export { DEFAULT_MODEL, AVAILABLE_MODELS, getModelById };
 
 /**
+ * Stream next message; falls back to non-streaming if provider doesn't support it.
+ */
+export async function streamNextMessage(
+  apiKey: string,
+  modelId: string | undefined,
+  messages: Message[],
+  newMessage: string,
+  onChunk: (chunk: string) => void
+): Promise<string> {
+  var model = modelId ? getModelById(modelId) : null;
+  if (!model) model = DEFAULT_MODEL;
+
+  var provider = getProviderForModel(model.id);
+  logger("llm").debug("streamNextMessage dispatch", {
+    modelId: model.id,
+    provider: provider.id,
+    historyLen: messages.length,
+  });
+
+  if (provider.streamNextMessage) {
+    return provider.streamNextMessage(apiKey, model.id, messages, newMessage, onChunk);
+  }
+
+  // Fallback: non-streaming — deliver the full response as a single chunk
+  logger("llm").debug("streamNextMessage fallback to non-streaming", { provider: provider.id });
+  var result = await provider.getNextMessage(apiKey, model.id, messages, newMessage);
+  onChunk(result);
+  return result;
+}
+
+/**
  * Generate next message using appropriate provider
  */
 export async function getNextMessage(

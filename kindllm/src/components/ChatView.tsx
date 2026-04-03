@@ -9,6 +9,7 @@ import { logger } from "../diagnostic-log";
 
 interface ChatViewProps {
   messages: MessageType[];
+  streamingContent: string | null;
   suggestions: string[];
   isLoading: boolean;
   isLoadingSuggestions: boolean;
@@ -30,6 +31,7 @@ interface ChatViewProps {
 
 export function ChatView({
   messages,
+  streamingContent,
   suggestions,
   isLoading,
   isLoadingSuggestions,
@@ -91,6 +93,19 @@ export function ChatView({
       }
     },
     [messages]
+  );
+
+  // Scroll to bottom as streaming content grows
+  useEffect(
+    function () {
+      if (streamingContent === null || streamingContent === "") return;
+      if (messagesEndRef.current) {
+        try {
+          messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+        } catch (e) {}
+      }
+    },
+    [streamingContent]
   );
 
   // API Key input state
@@ -292,6 +307,15 @@ export function ChatView({
           {messages.map(function (message, index) {
             return <Message key={index} message={message} />;
           })}
+          {streamingContent !== null && (
+            <div
+              className="message-assistant"
+              style={{ whiteSpace: "pre-wrap" }}
+            >
+              {streamingContent}
+              <span style={{ opacity: 0.4 }}>▌</span>
+            </div>
+          )}
         </div>
         <div ref={messagesEndRef} />
       </div>

@@ -14,7 +14,7 @@ import {
   getSelectedModel,
   setSelectedModel as persistSelectedModel,
 } from "./storage";
-import { getNextMessage, getSuggestions, DEFAULT_MODEL, getModelById } from "./llm";
+import { streamNextMessage, getSuggestions, DEFAULT_MODEL, getModelById } from "./llm";
 import { fetchApiKeyFromDpaste } from "./dpaste";
 import { logger, isDiagnosticDebugEnabled } from "./diagnostic-log";
 
@@ -55,6 +55,7 @@ export function App() {
   var [isLoadingSuggestions, setIsLoadingSuggestions] = useState<boolean>(false);
   var [dpasteError, setDpasteError] = useState<string | null>(null);
   var [isLoadingDpaste, setIsLoadingDpaste] = useState<boolean>(false);
+  var [streamingContent, setStreamingContent] = useState<string | null>(null);
   var [selectedModel, setSelectedModelState] = useState<string>(function () {
     var stored = getSelectedModel();
     if (stored && getModelById(stored)) {
@@ -128,7 +129,17 @@ export function App() {
 
     try {
       logger("llm").info("sendMessage start", { model: selectedModel, historyLen: messages.length });
-      var response = await getNextMessage(apiKey, selectedModel, messages, messageText);
+      setStreamingContent("");
+      var response = await streamNextMessage(
+        apiKey,
+        selectedModel,
+        messages,
+        messageText,
+        function (chunk) {
+          setStreamingContent(function (prev) { return (prev ?? "") + chunk; });
+        }
+      );
+      setStreamingContent(null);
       logger("llm").info("sendMessage assistant reply", { outLen: response.length });
       var assistantMessage: Message = { role: "assistant", content: response };
       var finalMessages = [...updatedMessages, assistantMessage];
@@ -150,6 +161,7 @@ export function App() {
       setIsLoadingSuggestions(false);
     } catch (e) {
       var errMsg = e instanceof Error ? e.message : String(e);
+      setStreamingContent(null);
       logger("llm").error("sendMessage failed", { message: errMsg });
       // Handle error - add error message
       var errorMessage: Message = {
@@ -298,6 +310,7 @@ export function App() {
       dpasteError={dpasteError}
       isLoadingDpaste={isLoadingDpaste}
       selectedModel={selectedModel}
+      streamingContent={streamingContent}
       onSendMessage={handleSendMessage}
       onSuggestionClick={handleSuggestionClick}
       onSaveApiKey={handleSaveApiKey}

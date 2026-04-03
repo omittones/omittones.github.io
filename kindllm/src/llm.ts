@@ -2,12 +2,7 @@
 // ES5 compatible - no optional chaining or nullish coalescing
 
 import { Message } from "./storage";
-import {
-  getModelById,
-  getProviderForModel,
-  DEFAULT_MODEL,
-  AVAILABLE_MODELS,
-} from "./providers";
+import { getModelById, getProviderForModel, DEFAULT_MODEL, AVAILABLE_MODELS } from "./providers";
 import { getTypingAutocomplete as anthropicGetTypingAutocomplete } from "./providers/anthropic";
 import { logger } from "./diagnostic-log";
 
@@ -21,7 +16,7 @@ export async function streamNextMessage(
   modelId: string | undefined,
   messages: Message[],
   newMessage: string,
-  onChunk: (chunk: string) => void
+  onChunk: (chunk: string) => void,
 ): Promise<string> {
   var model = modelId ? getModelById(modelId) : null;
   if (!model) model = DEFAULT_MODEL;
@@ -51,7 +46,7 @@ export async function getNextMessage(
   apiKey: string,
   modelId: string | undefined,
   messages: Message[],
-  newMessage: string
+  newMessage: string,
 ): Promise<string> {
   var model = modelId ? getModelById(modelId) : null;
   if (!model) {
@@ -74,7 +69,7 @@ export async function getNextMessage(
 export async function getSuggestions(
   apiKey: string,
   modelId: string | undefined,
-  messages: Message[]
+  messages: Message[],
 ): Promise<string[]> {
   var model = modelId ? getModelById(modelId) : null;
   if (!model) {
@@ -96,7 +91,7 @@ export async function getSuggestions(
 export async function getTypingAutocomplete(
   apiKey: string,
   partialText: string,
-  messages: Message[]
+  messages: Message[],
 ): Promise<string[]> {
   logger("llm").debug("getTypingAutocomplete", { partialLen: partialText.length });
   return anthropicGetTypingAutocomplete(apiKey, partialText, messages);

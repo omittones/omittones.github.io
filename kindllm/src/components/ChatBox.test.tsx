@@ -54,10 +54,7 @@ describe("ChatBox autocomplete", function () {
   });
 
   function typeIntoChatInput(input: HTMLInputElement, value: string) {
-    var proto = Object.getOwnPropertyDescriptor(
-      window.HTMLInputElement.prototype,
-      "value"
-    );
+    var proto = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value");
     if (proto && proto.set) {
       proto.set.call(input, value);
     } else {
@@ -83,7 +80,7 @@ describe("ChatBox autocomplete", function () {
           apiKey="test-key"
           messages={[]}
         />,
-        container
+        container,
       );
     });
 
@@ -125,7 +122,7 @@ describe("ChatBox autocomplete", function () {
           apiKey="test-key"
           messages={[]}
         />,
-        container
+        container,
       );
     });
 

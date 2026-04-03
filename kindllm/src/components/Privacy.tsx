@@ -10,9 +10,9 @@ export function PrivacyView() {
     <div className="privacy-container">
       <h2>KindLLM2 Privacy</h2>
       <p>
-        We do not store any of your messages on our servers. Messages are sent
-        directly to Anyscale Endpoints for processing. Your API key and message
-        history are stored locally in your browser using localStorage.
+        We do not store any of your messages on our servers. Messages are sent directly to Anyscale
+        Endpoints for processing. Your API key and message history are stored locally in your
+        browser using localStorage.
       </p>
       <p>
         You can read the Anyscale Privacy Policy{" "}

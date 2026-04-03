@@ -15,18 +15,21 @@ interface MessageProps {
 export function Message({ message }: MessageProps) {
   var isAssistant = message.role === "assistant";
 
-  var html = useMemo(function () {
-    try {
-      return marked.parse(message.content, { async: false }) as string;
-    } catch (e) {
-      logger("message").error("marked.parse failed", {
-        role: message.role,
-        message: e instanceof Error ? e.message : String(e),
-        contentLen: message.content.length,
-      });
-      return "<p>[Could not render this message]</p>";
-    }
-  }, [message.content]);
+  var html = useMemo(
+    function () {
+      try {
+        return marked.parse(message.content, { async: false }) as string;
+      } catch (e) {
+        logger("message").error("marked.parse failed", {
+          role: message.role,
+          message: e instanceof Error ? e.message : String(e),
+          contentLen: message.content.length,
+        });
+        return "<p>[Could not render this message]</p>";
+      }
+    },
+    [message.content],
+  );
 
   return (
     <div

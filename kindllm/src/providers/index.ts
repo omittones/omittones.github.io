@@ -26,19 +26,15 @@ export interface LLMProvider {
     apiKey: string,
     modelId: string,
     messages: Message[],
-    newMessage: string
+    newMessage: string,
   ): Promise<string>;
-  getSuggestions(
-    apiKey: string,
-    modelId: string,
-    messages: Message[]
-  ): Promise<string[]>;
+  getSuggestions(apiKey: string, modelId: string, messages: Message[]): Promise<string[]>;
   streamNextMessage?(
     apiKey: string,
     modelId: string,
     messages: Message[],
     newMessage: string,
-    onChunk: (chunk: string) => void
+    onChunk: (chunk: string) => void,
   ): Promise<string>;
 }
 

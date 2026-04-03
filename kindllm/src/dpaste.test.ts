@@ -115,17 +115,13 @@ describe("dpaste service", function () {
       };
       (global.fetch as any).mockResolvedValue(mockResponse);
 
-      await expect(fetchApiKeyFromDpaste("INVALID")).rejects.toThrow(
-        "Paste not found or expired"
-      );
+      await expect(fetchApiKeyFromDpaste("INVALID")).rejects.toThrow("Paste not found or expired");
     });
 
     it("should throw error for network failure", async function () {
       (global.fetch as any).mockRejectedValue(new Error("Network error"));
 
-      await expect(fetchApiKeyFromDpaste("ABC123")).rejects.toThrow(
-        "Failed to fetch paste"
-      );
+      await expect(fetchApiKeyFromDpaste("ABC123")).rejects.toThrow("Failed to fetch paste");
     });
 
     it("should throw error for empty paste content", async function () {
@@ -137,15 +133,11 @@ describe("dpaste service", function () {
       };
       (global.fetch as any).mockResolvedValue(mockResponse);
 
-      await expect(fetchApiKeyFromDpaste("ABC123")).rejects.toThrow(
-        "Paste is empty"
-      );
+      await expect(fetchApiKeyFromDpaste("ABC123")).rejects.toThrow("Paste is empty");
     });
 
     it("should throw error for empty input", async function () {
-      await expect(fetchApiKeyFromDpaste("")).rejects.toThrow(
-        "Invalid dpaste code or URL"
-      );
+      await expect(fetchApiKeyFromDpaste("")).rejects.toThrow("Invalid dpaste code or URL");
     });
   });
 
@@ -167,12 +159,17 @@ describe("dpaste service", function () {
         expect.objectContaining({
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        })
+        }),
       );
     });
 
     it("should throw for non-201 response", async function () {
-      (global.fetch as any).mockResolvedValue({ status: 403, text: function () { return Promise.resolve(""); } });
+      (global.fetch as any).mockResolvedValue({
+        status: 403,
+        text: function () {
+          return Promise.resolve("");
+        },
+      });
 
       await expect(uploadContentToDpaste("x")).rejects.toThrow("dpaste upload failed: HTTP 403");
     });

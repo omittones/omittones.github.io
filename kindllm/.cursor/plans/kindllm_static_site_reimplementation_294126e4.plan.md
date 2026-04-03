@@ -83,7 +83,7 @@ flowchart TB
         state["useState: messages, apiKey, isLoading"]
         storage["localStorage persistence"]
     end
-    
+
     subgraph Components["Preact Components"]
         chatView["ChatView"]
         chatBox["ChatBox"]
@@ -91,11 +91,11 @@ flowchart TB
         suggestions["Suggestions"]
         landing["LandingView"]
     end
-    
+
     subgraph API["External API"]
         openai["OpenAI/Anyscale API"]
     end
-    
+
     main --> app
     app --> state
     state --> storage
@@ -110,21 +110,24 @@ flowchart TB
 ### Key Changes for Stage 1
 
 **Dependencies:**
+
 - Add: `preact` (3KB UI framework)
 - Keep: `openai` (API client)
 - Remove: `hono`, `@hono/zod-validator`, `zod`, HTMX
 
 **State Management:**
+
 - Preact `useState` for messages, API key, loading states
 - `fetch()` for direct API calls to OpenAI
 - `localStorage` for persistence (supported: YES)
 
 **Component Conversion:**
+
 ```typescript
 // Before (Hono)
 import { FC } from "hono/jsx";
 
-// After (Preact)  
+// After (Preact)
 import { FC } from "preact/compat";
 import { useState, useEffect } from "preact/hooks";
 ```
@@ -132,12 +135,14 @@ import { useState, useEffect } from "preact/hooks";
 ### Files to Create/Modify
 
 **New files:**
+
 - `kindllm/src/main.tsx` - Entry point
 - `kindllm/src/app.tsx` - Application controller
 - `kindllm/src/storage.ts` - localStorage persistence
 - `kindllm/src/styles.css` - Static CSS
 
 **Files to modify:**
+
 - `kindllm/vite.config.ts` - Simplify build for Preact
 - `kindllm/tsconfig.json` - `jsxImportSource: "preact"`
 - `kindllm/package.json` - Add Preact, remove Hono
@@ -146,12 +151,14 @@ import { useState, useEffect } from "preact/hooks";
 - All component files - Update imports to Preact
 
 **Files to delete:**
+
 - `kindllm/src/index.tsx` - Hono server app
 - `kindllm/src/renderer.tsx` - Server renderer
 
 ## Stage 2: Kindle UX Optimization (Future)
 
 Reserved for later:
+
 - Remove animations/transitions
 - Apply high contrast styling
 - Simplify layout for e-ink

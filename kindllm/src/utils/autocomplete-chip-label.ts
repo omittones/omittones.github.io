@@ -2,10 +2,7 @@
  * Chip label: show only the part of the completion after labelBase (frozen at fetch time).
  * Using the current input as base would re-truncate on every keystroke (bad on Kindle).
  */
-export function chipLabelAfterBase(
-  completion: string,
-  labelBaseTrimmed: string
-): string {
+export function chipLabelAfterBase(completion: string, labelBaseTrimmed: string): string {
   var base = labelBaseTrimmed.toLowerCase();
   if (!base) {
     return completion;
@@ -24,7 +21,7 @@ export function chipLabelAfterBase(
 export function shouldSkipAutocompleteRefetch(
   currentTrimmed: string,
   fetchedForTrimmed: string,
-  completions: string[]
+  completions: string[],
 ): boolean {
   if (
     completions.length === 0 ||

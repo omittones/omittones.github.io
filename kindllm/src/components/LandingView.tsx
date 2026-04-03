@@ -18,9 +18,8 @@ export function LandingView({ onEnterChat }: LandingViewProps) {
 
         <h1 className="landing-title">KindLLM2</h1>
         <p className="landing-text">
-          A distraction-free LLM chat web app optimized for Kindle. The perfect
-          companion for your book. Powered by Anthropic Claude. Mainly
-          tested on Kindle Paperwhites.
+          A distraction-free LLM chat web app optimized for Kindle. The perfect companion for your
+          book. Powered by Anthropic Claude. Mainly tested on Kindle Paperwhites.
         </p>
 
         {onEnterChat && (
@@ -65,14 +64,12 @@ export function LandingView({ onEnterChat }: LandingViewProps) {
 
         <h3>Why?</h3>
         <p style={{ marginBottom: "1rem" }}>
-          I got annoyed constantly looking things up on my phone while reading
-          and tried making this app a while back, but couldn't get it to work
-          well on the old Kindle web browser.
+          I got annoyed constantly looking things up on my phone while reading and tried making this
+          app a while back, but couldn't get it to work well on the old Kindle web browser.
         </p>
         <p>
-          Surprisingly, Amazon recently updated the web browser on some Kindles
-          and it now seems to be good enough to run simple interactive apps like
-          this!
+          Surprisingly, Amazon recently updated the web browser on some Kindles and it now seems to
+          be good enough to run simple interactive apps like this!
         </p>
         <p>
           Based on{" "}

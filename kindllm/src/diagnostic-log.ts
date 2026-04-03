@@ -138,7 +138,8 @@ export function initDiagnosticLog(partial: Partial<DiagnosticLogConfig>): void {
   config = {
     maxBytes: partial.maxBytes !== undefined ? partial.maxBytes : defaultConfig.maxBytes,
     minLevel: partial.minLevel !== undefined ? partial.minLevel : defaultConfig.minLevel,
-    enableConsole: partial.enableConsole !== undefined ? partial.enableConsole : defaultConfig.enableConsole,
+    enableConsole:
+      partial.enableConsole !== undefined ? partial.enableConsole : defaultConfig.enableConsole,
     persistKey: partial.persistKey !== undefined ? partial.persistKey : defaultConfig.persistKey,
   };
 

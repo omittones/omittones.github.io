@@ -67,13 +67,22 @@ export function ChatView({
     [apiKey, messages.length]
   );
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom only when the user sends — assistant replies are often long; keep scroll position.
   useEffect(
     function () {
+      if (messages.length === 0) {
+        return;
+      }
+      var last = messages[messages.length - 1];
+      if (last.role !== "user") {
+        return;
+      }
       if (messagesEndRef.current) {
         try {
-          messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-          logger("chatView").debug("scrollIntoView(end)", { messageCount: messages.length });
+          messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+          logger("chatView").debug("scrollIntoView(end) after user message", {
+            messageCount: messages.length,
+          });
         } catch (e) {
           logger("chatView").warn("scrollIntoView failed", {
             message: e instanceof Error ? e.message : String(e),

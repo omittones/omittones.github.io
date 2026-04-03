@@ -13,6 +13,7 @@ interface ChatViewProps {
   isLoading: boolean;
   isLoadingSuggestions: boolean;
   apiKey: string;
+  debugMode?: boolean;
   dpasteError: string | null;
   isLoadingDpaste: boolean;
   selectedModel: string;
@@ -33,6 +34,7 @@ export function ChatView({
   isLoading,
   isLoadingSuggestions,
   apiKey,
+  debugMode,
   dpasteError,
   isLoadingDpaste,
   selectedModel,
@@ -122,6 +124,11 @@ export function ChatView({
       <div style={{ padding: "2rem", textAlign: "center" }}>
         <Logo />
         <h1>KindLLM2</h1>
+        {debugMode && (
+          <p className="chat-debug-indicator" role="status">
+            Debug logging is on. Turn off from About → Diagnostics (clear log).
+          </p>
+        )}
 
         {/* Manual API key entry */}
         <form onSubmit={handleApiKeySubmit} className="api-key-container">
@@ -287,6 +294,11 @@ export function ChatView({
         isLoading={isLoading}
         isLoadingSuggestions={isLoadingSuggestions}
       />
+      {debugMode && (
+        <p className="chat-debug-indicator" role="status">
+          Debug logging is on. Turn off from About → Diagnostics (clear log).
+        </p>
+      )}
       <Footer
         onClearChat={onClearChat}
         onOpenAbout={onOpenAbout}

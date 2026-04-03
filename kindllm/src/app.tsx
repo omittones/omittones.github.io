@@ -62,6 +62,9 @@ export function App() {
     }
     return DEFAULT_MODEL.id;
   });
+  var [diagnosticsDebugUi, setDiagnosticsDebugUi] = useState(function () {
+    return isDiagnosticDebugEnabled();
+  });
 
   // Handle hash-based routing for privacy page
   useEffect(function () {
@@ -265,7 +268,10 @@ export function App() {
           logger("routing").debug("about back — clear hash");
           window.location.hash = "";
         }}
-        debugMode={isDiagnosticDebugEnabled()}
+        debugMode={diagnosticsDebugUi}
+        onDiagnosticsDebugCleared={function () {
+          setDiagnosticsDebugUi(false);
+        }}
       />
     );
   }
@@ -288,6 +294,7 @@ export function App() {
       isLoading={isLoading}
       isLoadingSuggestions={isLoadingSuggestions}
       apiKey={apiKey}
+      debugMode={diagnosticsDebugUi}
       dpasteError={dpasteError}
       isLoadingDpaste={isLoadingDpaste}
       selectedModel={selectedModel}

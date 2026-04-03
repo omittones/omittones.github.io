@@ -77,6 +77,18 @@ button:active {
   height: 100%;
 }
 
+/* In-flow only (no sticky) — e-ink friendly */
+.chat-debug-indicator {
+  margin: 0;
+  padding: 0.35rem 0.75rem;
+  text-align: center;
+  font-size: 16px;
+  line-height: 1.35;
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+  flex-shrink: 0;
+}
+
 .message-user,
 .message-assistant {
   margin-bottom: 1rem;

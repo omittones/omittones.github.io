@@ -162,6 +162,9 @@ export function initDiagnosticLog(partial: Partial<DiagnosticLogConfig>): void {
   }
 }
 
+/** localStorage flag set when ?debug=1 is used (URL is then stripped in main.tsx). */
+export var DIAGNOSTIC_DEBUG_STORAGE_KEY = "kindllm_debug";
+
 /**
  * Debug logging: verbose buffer + persistence. Enable with ?debug=1 or localStorage kindllm_debug=1
  */
@@ -173,13 +176,44 @@ export function isDiagnosticDebugEnabled(): boolean {
     if (window.location.search.indexOf("debug=1") !== -1) {
       return true;
     }
-    if (localStorage.getItem("kindllm_debug") === "1") {
+    if (localStorage.getItem(DIAGNOSTIC_DEBUG_STORAGE_KEY) === "1") {
       return true;
     }
   } catch (_e) {
     return false;
   }
   return false;
+}
+
+/**
+ * Turn off verbose diagnostics for this session: remove kindllm_debug, relax minLevel / buffer,
+ * stop persisting. Does not clear in-memory lines (use clearDiagnosticLog first if needed).
+ */
+export function disableDiagnosticDebugMode(): void {
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.removeItem(DIAGNOSTIC_DEBUG_STORAGE_KEY);
+    } catch (_e) {
+      // ignore
+    }
+  }
+  if (persistTimer !== null) {
+    clearTimeout(persistTimer);
+    persistTimer = null;
+  }
+  var oldKey = config.persistKey;
+  config.minLevel = "info";
+  config.maxBytes = 32000;
+  config.persistKey = null;
+  if (oldKey) {
+    try {
+      if (typeof localStorage !== "undefined") {
+        localStorage.removeItem(oldKey);
+      }
+    } catch (_e) {
+      // ignore
+    }
+  }
 }
 
 /**

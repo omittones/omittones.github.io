@@ -5,6 +5,8 @@ import {
   logger,
   getDiagnosticLogText,
   clearDiagnosticLog,
+  disableDiagnosticDebugMode,
+  DIAGNOSTIC_DEBUG_STORAGE_KEY,
 } from "./diagnostic-log";
 
 describe("diagnostic-log", function () {
@@ -54,6 +56,23 @@ describe("diagnostic-log", function () {
     logger("a").info("x");
     clearDiagnosticLog();
     expect(getDiagnosticLogText()).toBe("");
+  });
+
+  it("disableDiagnosticDebugMode relaxes config and new debug lines are dropped", function () {
+    try {
+      localStorage.setItem(DIAGNOSTIC_DEBUG_STORAGE_KEY, "1");
+      initDiagnosticLog({ minLevel: "debug", maxBytes: 10000, persistKey: null, enableConsole: false });
+      logger("a").debug("before");
+      expect(getDiagnosticLogText().indexOf("before")).not.toBe(-1);
+      disableDiagnosticDebugMode();
+      expect(localStorage.getItem(DIAGNOSTIC_DEBUG_STORAGE_KEY)).toBeNull();
+      logger("a").debug("after-debug");
+      expect(getDiagnosticLogText().indexOf("after-debug")).toBe(-1);
+      logger("a").info("after-info");
+      expect(getDiagnosticLogText().indexOf("after-info")).not.toBe(-1);
+    } finally {
+      localStorage.removeItem(DIAGNOSTIC_DEBUG_STORAGE_KEY);
+    }
   });
 
   it("should not throw when data is not JSON-serializable", function () {

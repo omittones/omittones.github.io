@@ -7,15 +7,24 @@ import {
   installGlobalErrorHandlers,
   logger,
   isDiagnosticDebugEnabled,
+  DIAGNOSTIC_DEBUG_STORAGE_KEY,
 } from "./diagnostic-log";
 
 var debug = isDiagnosticDebugEnabled();
 if (typeof window !== "undefined" && window.location.search.indexOf("debug=1") !== -1) {
   try {
-    localStorage.setItem("kindllm_debug", "1");
+    localStorage.setItem(DIAGNOSTIC_DEBUG_STORAGE_KEY, "1");
     debug = true;
   } catch (_e) {
     // ignore
+  }
+  try {
+    var u = new URL(window.location.href);
+    u.searchParams.delete("debug");
+    var next = u.pathname + u.search + u.hash;
+    window.history.replaceState(null, "", next);
+  } catch (_e) {
+    // ignore — URL API or replaceState unavailable
   }
 }
 

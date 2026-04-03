@@ -4,13 +4,15 @@ import {
   getRedactedDiagnosticLogText,
   clearDiagnosticLog,
   copyTextToClipboard,
+  disableDiagnosticDebugMode,
+  logger,
 } from "../diagnostic-log";
 import { uploadContentToDpaste } from "../dpaste";
-import { logger } from "../diagnostic-log";
 
 interface AboutProps {
   onBack: () => void;
   debugMode: boolean;
+  onDiagnosticsDebugCleared?: () => void;
 }
 
 function copyWithFallback(text: string): void {
@@ -32,7 +34,7 @@ function copyWithFallback(text: string): void {
   });
 }
 
-export function About({ onBack, debugMode }: AboutProps) {
+export function About({ onBack, debugMode, onDiagnosticsDebugCleared }: AboutProps) {
   useEffect(function () {
     logger("about").debug("About mounted", { debugMode: debugMode });
   }, [debugMode]);
@@ -91,11 +93,15 @@ export function About({ onBack, debugMode }: AboutProps) {
       setClearConfirmOpen(false);
       logger("about").info("diagnostics log cleared by user");
       clearDiagnosticLog();
+      disableDiagnosticDebugMode();
+      if (onDiagnosticsDebugCleared) {
+        onDiagnosticsDebugCleared();
+      }
       setPasteUrl(null);
       setUploadError(null);
       bump();
     },
-    [bump]
+    [bump, onDiagnosticsDebugCleared]
   );
 
   var runUpload = useCallback(
@@ -177,7 +183,8 @@ export function About({ onBack, debugMode }: AboutProps) {
         <div className="about-diagnostics">
           <h2 style={{ marginTop: "2rem" }}>Diagnostics</h2>
           <p style={{ fontSize: "0.9rem" }}>
-            Add <code>?debug=1</code> to the page URL once to keep verbose logging (stored in this browser).
+            Add <code>?debug=1</code> to the page URL once; it is removed from the address bar after enabling.
+            Verbose logging stays on until you clear the log below (stored in this browser).
             Keys are redacted; chat text may still appear.
           </p>
           <div className="about-diagnostics-actions">
@@ -202,7 +209,8 @@ export function About({ onBack, debugMode }: AboutProps) {
           {clearConfirmOpen && (
             <div className="about-inline-confirm" role="region" aria-label="Confirm clear log">
               <p className="about-inline-confirm-text">
-                Remove all diagnostic lines from this device? This cannot be undone.
+                Remove all diagnostic lines from this device, turn off verbose debug mode, and stop saving logs
+                to this browser? This cannot be undone.
               </p>
               <div className="about-diagnostics-actions">
                 <button type="button" className="footer-button" onClick={handleClearCancel}>

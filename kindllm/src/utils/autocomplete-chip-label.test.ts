@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  chipLabelAfterBase,
-  shouldSkipAutocompleteRefetch,
-} from "./autocomplete-chip-label";
+import { chipLabelAfterBase, shouldSkipAutocompleteRefetch } from "./autocomplete-chip-label";
 
 describe("chipLabelAfterBase", function () {
   it("should strip frozen base prefix from completion", function () {
@@ -25,24 +22,17 @@ describe("chipLabelAfterBase", function () {
 
 describe("shouldSkipAutocompleteRefetch", function () {
   it("should skip when user extended and all completions still match", function () {
-    expect(
-      shouldSkipAutocompleteRefetch("hello", "hel", [
-        "hello world",
-        "hello there",
-      ])
-    ).toBe(true);
+    expect(shouldSkipAutocompleteRefetch("hello", "hel", ["hello world", "hello there"])).toBe(
+      true,
+    );
   });
 
   it("should not skip when user shortened query", function () {
-    expect(
-      shouldSkipAutocompleteRefetch("he", "hel", ["hello", "help"])
-    ).toBe(false);
+    expect(shouldSkipAutocompleteRefetch("he", "hel", ["hello", "help"])).toBe(false);
   });
 
   it("should not skip when a completion no longer matches", function () {
-    expect(
-      shouldSkipAutocompleteRefetch("hex", "hel", ["hello", "help"])
-    ).toBe(false);
+    expect(shouldSkipAutocompleteRefetch("hex", "hel", ["hello", "help"])).toBe(false);
   });
 
   it("should not skip with empty completions", function () {

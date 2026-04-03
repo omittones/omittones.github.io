@@ -17,27 +17,9 @@ export function Logo() {
     >
       <g transform="translate(-64.485391,-63.676404)">
         {/* Three circles forming a triangle - using solid black for e-ink */}
-        <circle
-          cx="109.46456"
-          cy="108.65557"
-          r="44.979168"
-          fill="#000"
-          opacity="0.6"
-        />
-        <circle
-          cx="159.46458"
-          cy="108.65557"
-          r="44.979168"
-          fill="#000"
-          opacity="0.8"
-        />
-        <circle
-          cx="134.46458"
-          cy="153.65556"
-          r="44.979168"
-          fill="#000"
-          opacity="1"
-        />
+        <circle cx="109.46456" cy="108.65557" r="44.979168" fill="#000" opacity="0.6" />
+        <circle cx="159.46458" cy="108.65557" r="44.979168" fill="#000" opacity="0.8" />
+        <circle cx="134.46458" cy="153.65556" r="44.979168" fill="#000" opacity="1" />
       </g>
     </svg>
   );

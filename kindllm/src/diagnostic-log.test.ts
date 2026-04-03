@@ -19,7 +19,12 @@ describe("diagnostic-log", function () {
   });
 
   it("should append lines for allowed levels", function () {
-    initDiagnosticLog({ minLevel: "info", maxBytes: 10000, persistKey: null, enableConsole: false });
+    initDiagnosticLog({
+      minLevel: "info",
+      maxBytes: 10000,
+      persistKey: null,
+      enableConsole: false,
+    });
     logger("app").info("hello", { n: 1 });
     var text = getDiagnosticLogText();
     expect(text.indexOf("INFO [app] hello")).not.toBe(-1);
@@ -27,7 +32,12 @@ describe("diagnostic-log", function () {
   });
 
   it("should skip debug when minLevel is info", function () {
-    initDiagnosticLog({ minLevel: "info", maxBytes: 10000, persistKey: null, enableConsole: false });
+    initDiagnosticLog({
+      minLevel: "info",
+      maxBytes: 10000,
+      persistKey: null,
+      enableConsole: false,
+    });
     logger("app").debug("hidden");
     expect(getDiagnosticLogText()).toBe("");
   });
@@ -44,7 +54,12 @@ describe("diagnostic-log", function () {
   });
 
   it("should redact keys in log output", function () {
-    initDiagnosticLog({ minLevel: "debug", maxBytes: 10000, persistKey: null, enableConsole: false });
+    initDiagnosticLog({
+      minLevel: "debug",
+      maxBytes: 10000,
+      persistKey: null,
+      enableConsole: false,
+    });
     logger("x").warn("leak", { k: "sk-12345678901234567890123456789012" });
     var text = getDiagnosticLogText();
     expect(text.indexOf("sk-12345678901234567890123456789012")).toBe(-1);
@@ -52,7 +67,12 @@ describe("diagnostic-log", function () {
   });
 
   it("clearDiagnosticLog should empty buffer", function () {
-    initDiagnosticLog({ minLevel: "info", maxBytes: 10000, persistKey: null, enableConsole: false });
+    initDiagnosticLog({
+      minLevel: "info",
+      maxBytes: 10000,
+      persistKey: null,
+      enableConsole: false,
+    });
     logger("a").info("x");
     clearDiagnosticLog();
     expect(getDiagnosticLogText()).toBe("");
@@ -61,7 +81,12 @@ describe("diagnostic-log", function () {
   it("disableDiagnosticDebugMode relaxes config and new debug lines are dropped", function () {
     try {
       localStorage.setItem(DIAGNOSTIC_DEBUG_STORAGE_KEY, "1");
-      initDiagnosticLog({ minLevel: "debug", maxBytes: 10000, persistKey: null, enableConsole: false });
+      initDiagnosticLog({
+        minLevel: "debug",
+        maxBytes: 10000,
+        persistKey: null,
+        enableConsole: false,
+      });
       logger("a").debug("before");
       expect(getDiagnosticLogText().indexOf("before")).not.toBe(-1);
       disableDiagnosticDebugMode();
@@ -76,7 +101,12 @@ describe("diagnostic-log", function () {
   });
 
   it("should not throw when data is not JSON-serializable", function () {
-    initDiagnosticLog({ minLevel: "debug", maxBytes: 10000, persistKey: null, enableConsole: false });
+    initDiagnosticLog({
+      minLevel: "debug",
+      maxBytes: 10000,
+      persistKey: null,
+      enableConsole: false,
+    });
     var circular: Record<string, unknown> = {};
     circular.self = circular;
     expect(function () {

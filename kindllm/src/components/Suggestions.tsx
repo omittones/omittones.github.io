@@ -7,7 +7,12 @@ interface SuggestionsProps {
   isLoading: boolean;
 }
 
-export function Suggestions({ suggestions, onSuggestionClick, onRetry, isLoading }: SuggestionsProps) {
+export function Suggestions({
+  suggestions,
+  onSuggestionClick,
+  onRetry,
+  isLoading,
+}: SuggestionsProps) {
   var hasSuggestions = suggestions && suggestions.length > 0;
 
   return (
@@ -16,11 +21,7 @@ export function Suggestions({ suggestions, onSuggestionClick, onRetry, isLoading
         {hasSuggestions &&
           suggestions.map(function (suggestion, index) {
             return (
-              <SuggestionButton
-                key={index}
-                suggestion={suggestion}
-                onClick={onSuggestionClick}
-              />
+              <SuggestionButton key={index} suggestion={suggestion} onClick={onSuggestionClick} />
             );
           })}
       </div>

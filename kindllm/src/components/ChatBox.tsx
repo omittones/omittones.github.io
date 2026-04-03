@@ -43,32 +43,29 @@ export function ChatBox({
   // Generation counter: incremented on each new input to discard stale in-flight responses
   var genRef = useRef(0);
 
-  var fetchAutocomplete = useDebouncedCallback(
-    function (value: string, gen: number) {
-      getTypingAutocomplete(apiKey, value.trim(), messages)
-        .then(function (completions) {
-          if (gen !== genRef.current) {
-            return;
-          }
-          logger("chatBox").debug("autocomplete results", { n: completions.length });
-          setAutocompletions(completions);
-          setAutocompleteLabelBase(value.trim());
-          setIsLoadingAutocomplete(false);
-        })
-        .catch(function (err) {
-          if (gen !== genRef.current) {
-            return;
-          }
-          logger("chatBox").warn("autocomplete error", {
-            message: err instanceof Error ? err.message : String(err),
-          });
-          setAutocompletions([]);
-          setAutocompleteLabelBase("");
-          setIsLoadingAutocomplete(false);
+  var fetchAutocomplete = useDebouncedCallback(function (value: string, gen: number) {
+    getTypingAutocomplete(apiKey, value.trim(), messages)
+      .then(function (completions) {
+        if (gen !== genRef.current) {
+          return;
+        }
+        logger("chatBox").debug("autocomplete results", { n: completions.length });
+        setAutocompletions(completions);
+        setAutocompleteLabelBase(value.trim());
+        setIsLoadingAutocomplete(false);
+      })
+      .catch(function (err) {
+        if (gen !== genRef.current) {
+          return;
+        }
+        logger("chatBox").warn("autocomplete error", {
+          message: err instanceof Error ? err.message : String(err),
         });
-    },
-    AUTOCOMPLETE_DEBOUNCE_MS
-  );
+        setAutocompletions([]);
+        setAutocompleteLabelBase("");
+        setIsLoadingAutocomplete(false);
+      });
+  }, AUTOCOMPLETE_DEBOUNCE_MS);
 
   // Clear autocomplete chips whenever the input is cleared (after send)
   useEffect(
@@ -81,7 +78,7 @@ export function ChatBox({
         setIsLoadingAutocomplete(false);
       }
     },
-    [message]
+    [message],
   );
 
   var handleSubmit = useCallback(
@@ -100,7 +97,7 @@ export function ChatBox({
         });
       }
     },
-    [message, isLoading, onSendMessage]
+    [message, isLoading, onSendMessage],
   );
 
   var handleInputChange = useCallback(
@@ -119,13 +116,7 @@ export function ChatBox({
       }
 
       var trimmed = value.trim();
-      if (
-        shouldSkipAutocompleteRefetch(
-          trimmed,
-          autocompleteLabelBase,
-          autocompletions
-        )
-      ) {
+      if (shouldSkipAutocompleteRefetch(trimmed, autocompleteLabelBase, autocompletions)) {
         fetchAutocomplete.cancel();
         return;
       }
@@ -134,20 +125,22 @@ export function ChatBox({
       setIsLoadingAutocomplete(true);
       fetchAutocomplete(value, genRef.current);
     },
-    [apiKey, messages, fetchAutocomplete, autocompleteLabelBase, autocompletions]
+    [apiKey, messages, fetchAutocomplete, autocompleteLabelBase, autocompletions],
   );
 
-  var handleAutocompleteClick = useCallback(function (completion: string) {
-    logger("chatBox").debug("autocomplete chip click", { len: completion.length });
-    genRef.current++;
-    fetchAutocomplete.cancel();
-    setMessage(completion);
-    setAutocompletions([]);
-    setAutocompleteLabelBase("");
-  }, [fetchAutocomplete]);
+  var handleAutocompleteClick = useCallback(
+    function (completion: string) {
+      logger("chatBox").debug("autocomplete chip click", { len: completion.length });
+      genRef.current++;
+      fetchAutocomplete.cancel();
+      setMessage(completion);
+      setAutocompletions([]);
+      setAutocompleteLabelBase("");
+    },
+    [fetchAutocomplete],
+  );
 
-  var showAutocomplete =
-    !isLoading && (isLoadingAutocomplete || autocompletions.length > 0);
+  var showAutocomplete = !isLoading && (isLoadingAutocomplete || autocompletions.length > 0);
 
   // Chip labels use the query from when completions were fetched, not live input,
   // so labels do not shrink on every keystroke (Kindle UX).

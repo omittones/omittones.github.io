@@ -97,10 +97,7 @@ export async function fetchApiKeyFromDpaste(urlOrCode: string): Promise<string> 
   } catch (error) {
     // Re-throw dpaste-specific errors
     if (error instanceof Error) {
-      if (
-        error.message.indexOf("not found") !== -1 ||
-        error.message.indexOf("empty") !== -1
-      ) {
+      if (error.message.indexOf("not found") !== -1 || error.message.indexOf("empty") !== -1) {
         throw error;
       }
     }
@@ -121,7 +118,7 @@ const DPASTE_API_V2 = DPASTE_BASE_URL + "/api/v2/";
  */
 export async function uploadContentToDpaste(
   content: string,
-  options?: { title?: string; expiryDays?: number }
+  options?: { title?: string; expiryDays?: number },
 ): Promise<string> {
   if (!content || typeof content !== "string") {
     throw new Error("Nothing to upload");

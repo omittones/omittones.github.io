@@ -35,9 +35,12 @@ function copyWithFallback(text: string): void {
 }
 
 export function About({ onBack, debugMode, onDiagnosticsDebugCleared }: AboutProps) {
-  useEffect(function () {
-    logger("about").debug("About mounted", { debugMode: debugMode });
-  }, [debugMode]);
+  useEffect(
+    function () {
+      logger("about").debug("About mounted", { debugMode: debugMode });
+    },
+    [debugMode],
+  );
 
   var [refreshKey, setRefreshKey] = useState(0);
   var [pasteUrl, setPasteUrl] = useState<string | null>(null);
@@ -60,7 +63,7 @@ export function About({ onBack, debugMode, onDiagnosticsDebugCleared }: AboutPro
       logger("about").debug("diagnostics refresh view");
       bump();
     },
-    [bump]
+    [bump],
   );
 
   var handleCopy = useCallback(
@@ -70,17 +73,14 @@ export function About({ onBack, debugMode, onDiagnosticsDebugCleared }: AboutPro
       copyWithFallback(getRedactedDiagnosticLogText());
       bump();
     },
-    [bump]
+    [bump],
   );
 
-  var handleClearClick = useCallback(
-    function (e: Event) {
-      e.preventDefault();
-      setUploadConfirmOpen(false);
-      setClearConfirmOpen(true);
-    },
-    []
-  );
+  var handleClearClick = useCallback(function (e: Event) {
+    e.preventDefault();
+    setUploadConfirmOpen(false);
+    setClearConfirmOpen(true);
+  }, []);
 
   var handleClearCancel = useCallback(function (e: Event) {
     e.preventDefault();
@@ -101,7 +101,7 @@ export function About({ onBack, debugMode, onDiagnosticsDebugCleared }: AboutPro
       setUploadError(null);
       bump();
     },
-    [bump, onDiagnosticsDebugCleared]
+    [bump, onDiagnosticsDebugCleared],
   );
 
   var runUpload = useCallback(
@@ -129,17 +129,14 @@ export function About({ onBack, debugMode, onDiagnosticsDebugCleared }: AboutPro
         bump();
       }
     },
-    [bump]
+    [bump],
   );
 
-  var handleUploadClick = useCallback(
-    function (e: Event) {
-      e.preventDefault();
-      setClearConfirmOpen(false);
-      setUploadConfirmOpen(true);
-    },
-    []
-  );
+  var handleUploadClick = useCallback(function (e: Event) {
+    e.preventDefault();
+    setClearConfirmOpen(false);
+    setUploadConfirmOpen(true);
+  }, []);
 
   var handleUploadCancel = useCallback(function (e: Event) {
     e.preventDefault();
@@ -152,7 +149,7 @@ export function About({ onBack, debugMode, onDiagnosticsDebugCleared }: AboutPro
       setUploadConfirmOpen(false);
       await runUpload();
     },
-    [runUpload]
+    [runUpload],
   );
 
   return (
@@ -183,9 +180,9 @@ export function About({ onBack, debugMode, onDiagnosticsDebugCleared }: AboutPro
         <div className="about-diagnostics">
           <h2 style={{ marginTop: "2rem" }}>Diagnostics</h2>
           <p style={{ fontSize: "0.9rem" }}>
-            Add <code>?debug=1</code> to the page URL once; it is removed from the address bar after enabling.
-            Verbose logging stays on until you clear the log below (stored in this browser).
-            Keys are redacted; chat text may still appear.
+            Add <code>?debug=1</code> to the page URL once; it is removed from the address bar after
+            enabling. Verbose logging stays on until you clear the log below (stored in this
+            browser). Keys are redacted; chat text may still appear.
           </p>
           <div className="about-diagnostics-actions">
             <button type="button" className="footer-button" onClick={handleRefresh}>
@@ -202,15 +199,20 @@ export function About({ onBack, debugMode, onDiagnosticsDebugCleared }: AboutPro
             >
               {isUploading ? "Uploading…" : "Upload to dpaste"}
             </button>
-            <button type="button" className="footer-button" onClick={handleClearClick} disabled={isUploading}>
+            <button
+              type="button"
+              className="footer-button"
+              onClick={handleClearClick}
+              disabled={isUploading}
+            >
               Clear log
             </button>
           </div>
           {clearConfirmOpen && (
             <div className="about-inline-confirm" role="region" aria-label="Confirm clear log">
               <p className="about-inline-confirm-text">
-                Remove all diagnostic lines from this device, turn off verbose debug mode, and stop saving logs
-                to this browser? This cannot be undone.
+                Remove all diagnostic lines from this device, turn off verbose debug mode, and stop
+                saving logs to this browser? This cannot be undone.
               </p>
               <div className="about-diagnostics-actions">
                 <button type="button" className="footer-button" onClick={handleClearCancel}>
@@ -225,14 +227,24 @@ export function About({ onBack, debugMode, onDiagnosticsDebugCleared }: AboutPro
           {uploadConfirmOpen && (
             <div className="about-inline-confirm" role="region" aria-label="Confirm upload">
               <p className="about-inline-confirm-text">
-                Upload the redacted diagnostic log to dpaste.com (expires in one day). Recent chat text may
-                still appear in the paste.
+                Upload the redacted diagnostic log to dpaste.com (expires in one day). Recent chat
+                text may still appear in the paste.
               </p>
               <div className="about-diagnostics-actions">
-                <button type="button" className="footer-button" onClick={handleUploadCancel} disabled={isUploading}>
+                <button
+                  type="button"
+                  className="footer-button"
+                  onClick={handleUploadCancel}
+                  disabled={isUploading}
+                >
                   Cancel
                 </button>
-                <button type="button" className="footer-button" onClick={handleUploadConfirm} disabled={isUploading}>
+                <button
+                  type="button"
+                  className="footer-button"
+                  onClick={handleUploadConfirm}
+                  disabled={isUploading}
+                >
                   Upload now
                 </button>
               </div>

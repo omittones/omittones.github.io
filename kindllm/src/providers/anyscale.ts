@@ -29,7 +29,7 @@ export const anyscaleProvider: LLMProvider = {
     apiKey: string,
     modelId: string,
     messages: Message[],
-    newMessage: string
+    newMessage: string,
   ): Promise<string> {
     var systemPrompt = {
       role: "system",
@@ -46,11 +46,7 @@ export const anyscaleProvider: LLMProvider = {
       });
     }
 
-    var prompt = [
-      systemPrompt,
-      ...messageHistory,
-      { role: "user", content: newMessage },
-    ];
+    var prompt = [systemPrompt, ...messageHistory, { role: "user", content: newMessage }];
 
     var requestBody: ChatCompletionRequest = {
       model: MODEL,
@@ -92,11 +88,7 @@ export const anyscaleProvider: LLMProvider = {
     return "";
   },
 
-  async getSuggestions(
-    apiKey: string,
-    modelId: string,
-    messages: Message[]
-  ): Promise<string[]> {
+  async getSuggestions(apiKey: string, modelId: string, messages: Message[]): Promise<string[]> {
     if (messages.length < 2) {
       return [];
     }
@@ -152,11 +144,10 @@ export const anyscaleProvider: LLMProvider = {
     ) {
       try {
         var jsonContent = JSON.parse(data.choices[0].message.content);
-        if (
-          jsonContent.suggestions &&
-          Array.isArray(jsonContent.suggestions)
-        ) {
-          logger("provider.anyscale").debug("suggestions parsed", { n: jsonContent.suggestions.length });
+        if (jsonContent.suggestions && Array.isArray(jsonContent.suggestions)) {
+          logger("provider.anyscale").debug("suggestions parsed", {
+            n: jsonContent.suggestions.length,
+          });
           return jsonContent.suggestions;
         }
       } catch (e) {

@@ -44,7 +44,7 @@ describe("anthropic provider", function () {
         "test-api-key",
         "claude-sonnet-4-6",
         messages,
-        "Hi"
+        "Hi",
       );
 
       expect(result).toBe("Hello from Claude");
@@ -83,12 +83,7 @@ describe("anthropic provider", function () {
         { role: "assistant", content: "Previous answer" },
       ];
 
-      await anthropicProvider.getNextMessage(
-        "key",
-        "claude-sonnet-4-6",
-        messages,
-        "New question"
-      );
+      await anthropicProvider.getNextMessage("key", "claude-sonnet-4-6", messages, "New question");
 
       var fetchCall = (global.fetch as any).mock.calls[0];
       var body = JSON.parse(fetchCall[1].body);
@@ -113,7 +108,7 @@ describe("anthropic provider", function () {
       (global.fetch as any).mockResolvedValue(mockResponse);
 
       await expect(
-        anthropicProvider.getNextMessage("key", "claude-sonnet-4-6", [], "Hi")
+        anthropicProvider.getNextMessage("key", "claude-sonnet-4-6", [], "Hi"),
       ).rejects.toThrow("Invalid API key");
     });
 
@@ -129,12 +124,7 @@ describe("anthropic provider", function () {
       };
       (global.fetch as any).mockResolvedValue(mockResponse);
 
-      var result = await anthropicProvider.getNextMessage(
-        "key",
-        "claude-sonnet-4-6",
-        [],
-        "Hi"
-      );
+      var result = await anthropicProvider.getNextMessage("key", "claude-sonnet-4-6", [], "Hi");
 
       expect(result).toBe("");
     });
@@ -172,11 +162,7 @@ describe("anthropic provider", function () {
         { role: "assistant", content: "First answer" },
       ];
 
-      var result = await anthropicProvider.getSuggestions(
-        "key",
-        "claude-sonnet-4-6",
-        messages
-      );
+      var result = await anthropicProvider.getSuggestions("key", "claude-sonnet-4-6", messages);
 
       expect(result).toEqual(["Question 1?", "Question 2?", "Question 3?"]);
 
@@ -205,11 +191,7 @@ describe("anthropic provider", function () {
         { role: "assistant", content: "A" },
       ];
 
-      var result = await anthropicProvider.getSuggestions(
-        "key",
-        "claude-sonnet-4-6",
-        messages
-      );
+      var result = await anthropicProvider.getSuggestions("key", "claude-sonnet-4-6", messages);
 
       expect(result).toEqual([]);
     });
@@ -235,11 +217,7 @@ describe("anthropic provider", function () {
         { role: "assistant", content: "A" },
       ];
 
-      var result = await anthropicProvider.getSuggestions(
-        "key",
-        "claude-sonnet-4-6",
-        messages
-      );
+      var result = await anthropicProvider.getSuggestions("key", "claude-sonnet-4-6", messages);
 
       expect(result).toEqual(["One?", "Two?", "Three?"]);
     });
@@ -268,11 +246,7 @@ describe("anthropic provider", function () {
         { role: "assistant", content: "A" },
       ];
 
-      var result = await anthropicProvider.getSuggestions(
-        "key",
-        "claude-sonnet-4-6",
-        messages
-      );
+      var result = await anthropicProvider.getSuggestions("key", "claude-sonnet-4-6", messages);
 
       expect(result).toHaveLength(3);
     });
@@ -289,11 +263,7 @@ describe("anthropic provider", function () {
         { role: "assistant", content: "A" },
       ];
 
-      var result = await anthropicProvider.getSuggestions(
-        "key",
-        "claude-sonnet-4-6",
-        messages
-      );
+      var result = await anthropicProvider.getSuggestions("key", "claude-sonnet-4-6", messages);
 
       expect(result).toEqual([]);
     });

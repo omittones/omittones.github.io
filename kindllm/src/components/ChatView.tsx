@@ -1,4 +1,5 @@
-import { useRef, useEffect, useState, useCallback } from "preact/hooks";
+import { useRef, useEffect, useLayoutEffect, useState, useCallback, useMemo } from "preact/hooks";
+import { marked } from "marked";
 import { ChatBox } from "./ChatBox";
 import { Footer } from "./Footer";
 import { Logo } from "./Logo";
@@ -6,9 +7,12 @@ import { Message } from "./Message";
 import { Message as MessageType } from "../storage";
 import { AVAILABLE_MODELS, DEFAULT_MODEL } from "../providers";
 import { logger } from "../diagnostic-log";
+import { FEATURE_CHAT_AUTOSCROLL } from "../feature-flags";
+import { splitStreamingMarkdown } from "../utils/streaming-markdown";
 
 interface ChatViewProps {
   messages: MessageType[];
+  streamingContent: string | null;
   suggestions: string[];
   isLoading: boolean;
   isLoadingSuggestions: boolean;
@@ -30,6 +34,7 @@ interface ChatViewProps {
 
 export function ChatView({
   messages,
+  streamingContent,
   suggestions,
   isLoading,
   isLoadingSuggestions,
@@ -49,6 +54,9 @@ export function ChatView({
   onRetrySuggestions,
 }: ChatViewProps) {
   var messagesEndRef = useRef<HTMLDivElement>(null);
+  var messagesContainerRef = useRef<HTMLDivElement>(null);
+  /** When true, streaming / growth may scroll the list; false if the user left the bottom. */
+  var stickToBottomRef = useRef(true);
   var [dpasteCode, setDpasteCode] = useState<string>("");
   var [showModelSelector, setShowModelSelector] = useState<boolean>(false);
 
@@ -64,12 +72,76 @@ export function ChatView({
         logger("chatView").debug("UI branch: main chat", { messageCount: messages.length });
       }
     },
-    [apiKey, messages.length]
+    [apiKey, messages.length],
+  );
+
+  var BOTTOM_THRESHOLD_PX = 80;
+
+  var streamingSplit = useMemo(
+    function () {
+      if (streamingContent === null) {
+        return null;
+      }
+      return splitStreamingMarkdown(streamingContent);
+    },
+    [streamingContent],
+  );
+
+  var streamingHtml = useMemo(
+    function () {
+      if (!streamingSplit || streamingSplit.markdown === "") {
+        return "";
+      }
+      try {
+        return marked.parse(streamingSplit.markdown, { async: false }) as string;
+      } catch (e) {
+        logger("chatView").error("streaming markdown parse failed", {
+          message: e instanceof Error ? e.message : String(e),
+          markdownLen: streamingSplit.markdown.length,
+        });
+        return "";
+      }
+    },
+    [streamingSplit],
+  );
+
+  var isNearBottom = useCallback(function () {
+    var el = messagesContainerRef.current;
+    if (!el) {
+      return true;
+    }
+    return el.scrollHeight - el.scrollTop - el.clientHeight <= BOTTOM_THRESHOLD_PX;
+  }, []);
+
+  var handleMessagesScroll = useCallback(
+    function () {
+      if (!FEATURE_CHAT_AUTOSCROLL) {
+        return;
+      }
+      stickToBottomRef.current = isNearBottom();
+    },
+    [isNearBottom],
+  );
+
+  useLayoutEffect(
+    function () {
+      if (!FEATURE_CHAT_AUTOSCROLL) {
+        return;
+      }
+      if (!apiKey || !messagesContainerRef.current) {
+        return;
+      }
+      stickToBottomRef.current = isNearBottom();
+    },
+    [apiKey, messages.length, isNearBottom],
   );
 
   // Scroll to bottom only when the user sends — assistant replies are often long; keep scroll position.
   useEffect(
     function () {
+      if (!FEATURE_CHAT_AUTOSCROLL) {
+        return;
+      }
       if (messages.length === 0) {
         return;
       }
@@ -80,6 +152,7 @@ export function ChatView({
       if (messagesEndRef.current) {
         try {
           messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+          stickToBottomRef.current = true;
           logger("chatView").debug("scrollIntoView(end) after user message", {
             messageCount: messages.length,
           });
@@ -90,14 +163,33 @@ export function ChatView({
         }
       }
     },
-    [messages]
+    [messages],
+  );
+
+  // Scroll to bottom as streaming content grows only while the view is already pinned to the bottom.
+  useEffect(
+    function () {
+      if (!FEATURE_CHAT_AUTOSCROLL) {
+        return;
+      }
+      if (streamingContent === null || streamingContent === "") return;
+      if (!stickToBottomRef.current) return;
+      if (messagesEndRef.current) {
+        try {
+          messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+        } catch (e) {}
+      }
+    },
+    [streamingContent],
   );
 
   // API Key input state
   var handleApiKeySubmit = function (e: Event) {
     e.preventDefault();
     logger("chatView").debug("api key form submit");
-    var input = (e.target as HTMLFormElement).querySelector('input[type="password"]') as HTMLInputElement;
+    var input = (e.target as HTMLFormElement).querySelector(
+      'input[type="password"]',
+    ) as HTMLInputElement;
     if (input && input.value.trim()) {
       onSaveApiKey(input.value.trim());
     } else {
@@ -119,7 +211,7 @@ export function ChatView({
         });
       }
     },
-    [dpasteCode, isLoadingDpaste, onLoadApiKeyFromDpaste]
+    [dpasteCode, isLoadingDpaste, onLoadApiKeyFromDpaste],
   );
 
   var handleDpasteInputChange = useCallback(function (e: Event) {
@@ -191,16 +283,20 @@ export function ChatView({
   }
 
   // Get selected model info
-  var currentModel = AVAILABLE_MODELS.find(function (m) {
-    return m.id === selectedModel;
-  }) || DEFAULT_MODEL;
+  var currentModel =
+    AVAILABLE_MODELS.find(function (m) {
+      return m.id === selectedModel;
+    }) || DEFAULT_MODEL;
 
   // Toggle model selector
-  var handleToggleModelSelector = useCallback(function () {
-    var next = !showModelSelector;
-    logger("chatView").debug("toggle model selector", { open: next });
-    setShowModelSelector(next);
-  }, [showModelSelector]);
+  var handleToggleModelSelector = useCallback(
+    function () {
+      var next = !showModelSelector;
+      logger("chatView").debug("toggle model selector", { open: next });
+      setShowModelSelector(next);
+    },
+    [showModelSelector],
+  );
 
   // Handle model change
   var handleModelSelect = useCallback(
@@ -209,12 +305,16 @@ export function ChatView({
       onModelChange(modelId);
       setShowModelSelector(false);
     },
-    [onModelChange]
+    [onModelChange],
   );
 
   return (
     <div className="chat-container">
-      <div className="messages-container">
+      <div
+        ref={messagesContainerRef}
+        className="messages-container"
+        onScroll={handleMessagesScroll}
+      >
         <div style={{ margin: "0 auto" }}>
           <Logo />
         </div>
@@ -268,8 +368,7 @@ export function ChatView({
                       padding: "0.75rem 1rem",
                       border: "none",
                       borderBottom: "1px solid #eee",
-                      background:
-                        model.id === selectedModel ? "#f0f0f0" : "#fff",
+                      background: model.id === selectedModel ? "#f0f0f0" : "#fff",
                       textAlign: "left",
                       cursor: "pointer",
                       fontSize: "0.9rem",
@@ -278,9 +377,7 @@ export function ChatView({
                   >
                     <strong>{model.name}</strong>
                     <br />
-                    <span style={{ fontSize: "0.8rem", color: "#666" }}>
-                      {model.description}
-                    </span>
+                    <span style={{ fontSize: "0.8rem", color: "#666" }}>{model.description}</span>
                   </button>
                 );
               })}
@@ -292,6 +389,15 @@ export function ChatView({
           {messages.map(function (message, index) {
             return <Message key={index} message={message} />;
           })}
+          {streamingContent !== null && streamingSplit && (
+            <div className="message-assistant">
+              {streamingHtml ? <div dangerouslySetInnerHTML={{ __html: streamingHtml }} /> : null}
+              {streamingSplit.plain ? (
+                <span style={{ whiteSpace: "pre-wrap" }}>{streamingSplit.plain}</span>
+              ) : null}
+              <span style={{ opacity: 0.4 }}>▌</span>
+            </div>
+          )}
         </div>
         <div ref={messagesEndRef} />
       </div>
@@ -310,11 +416,7 @@ export function ChatView({
           Debug logging is on. Turn off from About → Diagnostics (clear log).
         </p>
       )}
-      <Footer
-        onClearChat={onClearChat}
-        onOpenAbout={onOpenAbout}
-        onLogout={onLogout}
-      />
+      <Footer onClearChat={onClearChat} onOpenAbout={onOpenAbout} onLogout={onLogout} />
     </div>
   );
 }

@@ -14,7 +14,7 @@ import {
   getSelectedModel,
   setSelectedModel as persistSelectedModel,
 } from "./storage";
-import { getNextMessage, getSuggestions, DEFAULT_MODEL, getModelById } from "./llm";
+import { streamNextMessage, getSuggestions, DEFAULT_MODEL, getModelById } from "./llm";
 import { fetchApiKeyFromDpaste } from "./dpaste";
 import { logger, isDiagnosticDebugEnabled } from "./diagnostic-log";
 
@@ -55,6 +55,7 @@ export function App() {
   var [isLoadingSuggestions, setIsLoadingSuggestions] = useState<boolean>(false);
   var [dpasteError, setDpasteError] = useState<string | null>(null);
   var [isLoadingDpaste, setIsLoadingDpaste] = useState<boolean>(false);
+  var [streamingContent, setStreamingContent] = useState<string | null>(null);
   var [selectedModel, setSelectedModelState] = useState<string>(function () {
     var stored = getSelectedModel();
     if (stored && getModelById(stored)) {
@@ -80,7 +81,8 @@ export function App() {
           setView("chat");
         } else {
           var userAgent = navigator.userAgent;
-          var isKindle = userAgent.indexOf("Kindle/3.0+") !== -1 || userAgent.indexOf("Kindle") !== -1;
+          var isKindle =
+            userAgent.indexOf("Kindle/3.0+") !== -1 || userAgent.indexOf("Kindle") !== -1;
           setView(isKindle ? "chat" : "landing");
         }
       }
@@ -92,9 +94,12 @@ export function App() {
     };
   }, []);
 
-  useEffect(function () {
-    logger("app").info("view active", { view: view });
-  }, [view]);
+  useEffect(
+    function () {
+      logger("app").info("view active", { view: view });
+    },
+    [view],
+  );
 
   useEffect(function () {
     logger("app").debug("App mounted");
@@ -108,69 +113,91 @@ export function App() {
   }, []);
 
   // Send message
-  var handleSendMessage = useCallback(async function (messageText: string) {
-    if (!apiKey || !messageText.trim()) {
-      logger("app").debug("sendMessage skipped", {
-        hasKey: Boolean(apiKey),
-        empty: !messageText.trim(),
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    logger("app").debug("sendMessage state", { loading: true });
-
-    // Add user message
-    var newUserMessage: Message = { role: "user", content: messageText };
-    var updatedMessages = [...messages, newUserMessage];
-    setMessagesState(updatedMessages);
-    setMessages(updatedMessages);
-
-    try {
-      logger("llm").info("sendMessage start", { model: selectedModel, historyLen: messages.length });
-      var response = await getNextMessage(apiKey, selectedModel, messages, messageText);
-      logger("llm").info("sendMessage assistant reply", { outLen: response.length });
-      var assistantMessage: Message = { role: "assistant", content: response };
-      var finalMessages = [...updatedMessages, assistantMessage];
-      setMessagesState(finalMessages);
-      setMessages(finalMessages);
-
-      // Get suggestions after receiving response
-      setIsLoadingSuggestions(true);
-      try {
-        var newSuggestions = await getSuggestions(apiKey, selectedModel, finalMessages);
-        var top = newSuggestions.slice(0, 3);
-        setSuggestions(top);
-        logger("llm").info("getSuggestions ok", { n: top.length });
-      } catch (e) {
-        var sErr = e instanceof Error ? e.message : String(e);
-        logger("llm").warn("getSuggestions failed", { message: sErr });
-        setSuggestions([]);
+  var handleSendMessage = useCallback(
+    async function (messageText: string) {
+      if (!apiKey || !messageText.trim()) {
+        logger("app").debug("sendMessage skipped", {
+          hasKey: Boolean(apiKey),
+          empty: !messageText.trim(),
+        });
+        return;
       }
-      setIsLoadingSuggestions(false);
-    } catch (e) {
-      var errMsg = e instanceof Error ? e.message : String(e);
-      logger("llm").error("sendMessage failed", { message: errMsg });
-      // Handle error - add error message
-      var errorMessage: Message = {
-        role: "assistant",
-        content: "Sorry, there was an error. Please check your API key and try again.",
-      };
-      var errorMessages = [...updatedMessages, errorMessage];
-      setMessagesState(errorMessages);
-      setMessages(errorMessages);
-    } finally {
-      setIsLoading(false);
-      logger("app").debug("sendMessage state", { loading: false });
-    }
-  }, [apiKey, messages, selectedModel]);
+
+      setIsLoading(true);
+      logger("app").debug("sendMessage state", { loading: true });
+
+      // Add user message
+      var newUserMessage: Message = { role: "user", content: messageText };
+      var updatedMessages = [...messages, newUserMessage];
+      setMessagesState(updatedMessages);
+      setMessages(updatedMessages);
+
+      try {
+        logger("llm").info("sendMessage start", {
+          model: selectedModel,
+          historyLen: messages.length,
+        });
+        setStreamingContent("");
+        var response = await streamNextMessage(
+          apiKey,
+          selectedModel,
+          messages,
+          messageText,
+          function (chunk) {
+            setStreamingContent(function (prev) {
+              return (prev ?? "") + chunk;
+            });
+          },
+        );
+        setStreamingContent(null);
+        logger("llm").info("sendMessage assistant reply", { outLen: response.length });
+        var assistantMessage: Message = { role: "assistant", content: response };
+        var finalMessages = [...updatedMessages, assistantMessage];
+        setMessagesState(finalMessages);
+        setMessages(finalMessages);
+
+        // Get suggestions after receiving response
+        setIsLoadingSuggestions(true);
+        try {
+          var newSuggestions = await getSuggestions(apiKey, selectedModel, finalMessages);
+          var top = newSuggestions.slice(0, 3);
+          setSuggestions(top);
+          logger("llm").info("getSuggestions ok", { n: top.length });
+        } catch (e) {
+          var sErr = e instanceof Error ? e.message : String(e);
+          logger("llm").warn("getSuggestions failed", { message: sErr });
+          setSuggestions([]);
+        }
+        setIsLoadingSuggestions(false);
+      } catch (e) {
+        var errMsg = e instanceof Error ? e.message : String(e);
+        setStreamingContent(null);
+        logger("llm").error("sendMessage failed", { message: errMsg });
+        // Handle error - add error message
+        var errorMessage: Message = {
+          role: "assistant",
+          content: "Sorry, there was an error. Please check your API key and try again.",
+        };
+        var errorMessages = [...updatedMessages, errorMessage];
+        setMessagesState(errorMessages);
+        setMessages(errorMessages);
+      } finally {
+        setIsLoading(false);
+        logger("app").debug("sendMessage state", { loading: false });
+      }
+    },
+    [apiKey, messages, selectedModel],
+  );
 
   // Handle suggestion click
-  var handleSuggestionClick = useCallback(function (suggestion: string) {
-    logger("app").debug("suggestion click", { len: suggestion.length });
-    handleSendMessage(suggestion);
-    setSuggestions([]);
-  }, [handleSendMessage]);
+  var handleSuggestionClick = useCallback(
+    function (suggestion: string) {
+      logger("app").debug("suggestion click", { len: suggestion.length });
+      handleSendMessage(suggestion);
+      setSuggestions([]);
+    },
+    [handleSendMessage],
+  );
 
   // Clear chat
   var handleClearChat = useCallback(function () {
@@ -198,28 +225,31 @@ export function App() {
   }, []);
 
   // Retry getting suggestions
-  var handleRetrySuggestions = useCallback(async function () {
-    if (!apiKey || messages.length < 2) {
-      logger("app").debug("retry suggestions skipped", {
-        hasKey: Boolean(apiKey),
-        messages: messages.length,
-      });
-      return;
-    }
-    logger("app").debug("retry suggestions start");
-    setIsLoadingSuggestions(true);
-    try {
-      var newSuggestions = await getSuggestions(apiKey, selectedModel, messages);
-      var top = newSuggestions.slice(0, 3);
-      setSuggestions(top);
-      logger("llm").info("retry getSuggestions ok", { n: top.length });
-    } catch (e) {
-      var rErr = e instanceof Error ? e.message : String(e);
-      logger("llm").warn("retry getSuggestions failed", { message: rErr });
-      setSuggestions([]);
-    }
-    setIsLoadingSuggestions(false);
-  }, [apiKey, messages, selectedModel]);
+  var handleRetrySuggestions = useCallback(
+    async function () {
+      if (!apiKey || messages.length < 2) {
+        logger("app").debug("retry suggestions skipped", {
+          hasKey: Boolean(apiKey),
+          messages: messages.length,
+        });
+        return;
+      }
+      logger("app").debug("retry suggestions start");
+      setIsLoadingSuggestions(true);
+      try {
+        var newSuggestions = await getSuggestions(apiKey, selectedModel, messages);
+        var top = newSuggestions.slice(0, 3);
+        setSuggestions(top);
+        logger("llm").info("retry getSuggestions ok", { n: top.length });
+      } catch (e) {
+        var rErr = e instanceof Error ? e.message : String(e);
+        logger("llm").warn("retry getSuggestions failed", { message: rErr });
+        setSuggestions([]);
+      }
+      setIsLoadingSuggestions(false);
+    },
+    [apiKey, messages, selectedModel],
+  );
 
   var handleModelChange = useCallback(function (modelId: string) {
     logger("app").info("model changed", { modelId: modelId });
@@ -298,6 +328,7 @@ export function App() {
       dpasteError={dpasteError}
       isLoadingDpaste={isLoadingDpaste}
       selectedModel={selectedModel}
+      streamingContent={streamingContent}
       onSendMessage={handleSendMessage}
       onSuggestionClick={handleSuggestionClick}
       onSaveApiKey={handleSaveApiKey}

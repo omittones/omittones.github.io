@@ -444,45 +444,41 @@
       // dpaste.com API v2 uses application/x-www-form-urlencoded
       var body = 'content=' + encodeURIComponent(textOutput) + '&syntax=text&expiry_days=7';
 
-      fetch('https://dpaste.com/api/v2/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: body
-      })
-      .then(function(response) {
-        if (response.status === 201) {
-          return response.text().then(function(bodyUrl) {
-            var url = (bodyUrl || '').trim();
-            if (!url) throw new Error('No URL returned from server');
-            return url;
-          });
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', 'https://dpaste.com/api/v2/');
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState !== 4) return;
+        if (xhr.status === 201) {
+          var url = (xhr.responseText || '').trim();
+          if (!url) {
+            setStatus('Share failed: No URL returned from server', true);
+            shareBtn.disabled = false;
+            return;
+          }
+          // Copy URL to clipboard
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url);
+          } else {
+            var tempInput = document.createElement('input');
+            tempInput.value = url;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+          }
+          setStatus('Shared! URL copied: ' + url);
+          window.open(url, '_blank');
         } else {
-          throw new Error('Upload failed: HTTP ' + response.status);
+          setStatus('Share failed: HTTP ' + xhr.status, true);
         }
-      })
-      .then(function(url) {
-        // Copy URL to clipboard
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(url);
-        } else {
-          var tempInput = document.createElement('input');
-          tempInput.value = url;
-          document.body.appendChild(tempInput);
-          tempInput.select();
-          document.execCommand('copy');
-          document.body.removeChild(tempInput);
-        }
-
-        setStatus('Shared! URL copied: ' + url);
-
-        // Open in new tab
-        window.open(url, '_blank');
         shareBtn.disabled = false;
-      })
-      .catch(function(error) {
-        setStatus('Share failed: ' + error.message, true);
+      };
+      xhr.onerror = function() {
+        setStatus('Share failed: network error', true);
         shareBtn.disabled = false;
-      });
+      };
+      xhr.send(body);
     }
 
     function runAll() {

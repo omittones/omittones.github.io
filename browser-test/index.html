@@ -440,23 +440,18 @@
       shareBtn.disabled = true;
       setStatus('Uploading to dpaste...');
       
-      // dpaste.com API v2 uses multipart/form-data
-      var formData = new FormData();
-      formData.append('content', textOutput);
-      formData.append('syntax', 'text');
-      formData.append('expiry_days', '7');
-      
+      // dpaste.com API v2 uses application/x-www-form-urlencoded
+      var body = 'content=' + encodeURIComponent(textOutput) + '&syntax=text&expiry_days=7';
+
       fetch('https://dpaste.com/api/v2/', {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body
       })
       .then(function(response) {
         if (response.status === 201) {
-          // Success - get URL from response body or Location header
-          var location = response.headers.get('Location');
           return response.text().then(function(bodyUrl) {
-            // dpaste returns URL in body or Location header
-            var url = (bodyUrl || location || '').trim();
+            var url = (bodyUrl || '').trim();
             if (!url) throw new Error('No URL returned from server');
             return url;
           });
@@ -476,16 +471,15 @@
           document.execCommand('copy');
           document.body.removeChild(tempInput);
         }
-        
+
         setStatus('Shared! URL copied: ' + url);
-        
+
         // Open in new tab
         window.open(url, '_blank');
+        shareBtn.disabled = false;
       })
       .catch(function(error) {
         setStatus('Share failed: ' + error.message, true);
-      })
-      .finally(function() {
         shareBtn.disabled = false;
       });
     }

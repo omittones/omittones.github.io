@@ -92,6 +92,7 @@
         ['XMLHttpRequest',       (function(){ return (typeof XMLHttpRequest !== 'undefined') ? ok() : no(); })()],
         ['fetch',                (function(){ return (typeof fetch !== 'undefined') ? ok() : no(); })()],
         ['Promise',              (function(){ return (typeof Promise !== 'undefined') ? ok() : no(); })()],
+        ['Promise.finally',      (function(){ return (typeof Promise !== 'undefined' && typeof Promise.prototype.finally === 'function') ? ok() : no(); })()],
         ['ES6 let/const',        tryEval('"use strict"; (function(){ const x=1; let y=2; })()') ? ok() : no()],
         ['ES6 arrow functions',  tryEval('(()=>{})()') ? ok() : no()],
         ['ES6 template literals',tryEval('`x${1}`') ? ok() : no()],
@@ -440,54 +441,44 @@
       shareBtn.disabled = true;
       setStatus('Uploading to dpaste...');
       
-      // dpaste.com API v2 uses multipart/form-data
-      var formData = new FormData();
-      formData.append('content', textOutput);
-      formData.append('syntax', 'text');
-      formData.append('expiry_days', '7');
-      
-      fetch('https://dpaste.com/api/v2/', {
-        method: 'POST',
-        body: formData
-      })
-      .then(function(response) {
-        if (response.status === 201) {
-          // Success - get URL from response body or Location header
-          var location = response.headers.get('Location');
-          return response.text().then(function(bodyUrl) {
-            // dpaste returns URL in body or Location header
-            var url = (bodyUrl || location || '').trim();
-            if (!url) throw new Error('No URL returned from server');
-            return url;
-          });
+      // dpaste.com API v2 uses application/x-www-form-urlencoded
+      var body = 'content=' + encodeURIComponent(textOutput) + '&syntax=text&expiry_days=7';
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', 'https://dpaste.com/api/v2/');
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState !== 4) return;
+        if (xhr.status === 201) {
+          var url = (xhr.responseText || '').trim();
+          if (!url) {
+            setStatus('Share failed: No URL returned from server', true);
+            shareBtn.disabled = false;
+            return;
+          }
+          // Copy URL to clipboard
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url);
+          } else {
+            var tempInput = document.createElement('input');
+            tempInput.value = url;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+          }
+          setStatus('Shared! URL copied: ' + url);
+          window.open(url, '_blank');
         } else {
-          throw new Error('Upload failed: HTTP ' + response.status);
+          setStatus('Share failed: HTTP ' + xhr.status, true);
         }
-      })
-      .then(function(url) {
-        // Copy URL to clipboard
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(url);
-        } else {
-          var tempInput = document.createElement('input');
-          tempInput.value = url;
-          document.body.appendChild(tempInput);
-          tempInput.select();
-          document.execCommand('copy');
-          document.body.removeChild(tempInput);
-        }
-        
-        setStatus('Shared! URL copied: ' + url);
-        
-        // Open in new tab
-        window.open(url, '_blank');
-      })
-      .catch(function(error) {
-        setStatus('Share failed: ' + error.message, true);
-      })
-      .finally(function() {
         shareBtn.disabled = false;
-      });
+      };
+      xhr.onerror = function() {
+        setStatus('Share failed: network error', true);
+        shareBtn.disabled = false;
+      };
+      xhr.send(body);
     }
 
     function runAll() {

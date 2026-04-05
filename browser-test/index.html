@@ -379,9 +379,6 @@
       var statusEl = document.getElementById('status-msg');
       statusEl.textContent = msg;
       statusEl.style.color = isError ? '#c00' : '#666';
-      if (!isError && msg) {
-        setTimeout(function() { statusEl.textContent = ''; }, 3000);
-      }
     }
 
     function copyToClipboard() {
@@ -439,6 +436,7 @@
       var shareBtn = document.getElementById('share-btn');
       
       shareBtn.disabled = true;
+      document.getElementById('status-msg').textContent = '';
       setStatus('Uploading to dpaste...');
       
       // dpaste.com API v2 uses application/x-www-form-urlencoded

@@ -467,8 +467,9 @@
             document.execCommand('copy');
             document.body.removeChild(tempInput);
           }
-          setStatus('Shared! URL copied: ' + url);
-          window.open(url, '_blank');
+          var statusEl = document.getElementById('status-msg');
+          statusEl.style.color = '#666';
+          statusEl.innerHTML = 'Shared! <a href="' + url + '" target="_blank">' + url + '</a>';
         } else {
           setStatus('Share failed: HTTP ' + xhr.status, true);
         }

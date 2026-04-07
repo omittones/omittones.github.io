@@ -10,8 +10,16 @@ import { logger } from "../diagnostic-log";
 import { FEATURE_CHAT_AUTOSCROLL } from "../feature-flags";
 import { splitStreamingMarkdown } from "../utils/streaming-markdown";
 
+var ENV_PREFILL_API_KEY = import.meta.env.VITE_PREFILL_API_KEY;
+var apiKeyFieldDefaultValue =
+  typeof ENV_PREFILL_API_KEY === "string" && ENV_PREFILL_API_KEY.trim() !== ""
+    ? ENV_PREFILL_API_KEY
+    : undefined;
+
 interface ChatViewProps {
   messages: MessageType[];
+  messagesLoading?: boolean;
+  conversationSyncError?: string | null;
   streamingContent: string | null;
   suggestions: string[];
   isLoading: boolean;
@@ -30,10 +38,16 @@ interface ChatViewProps {
   onOpenAbout: () => void;
   onReset: () => void;
   onRetrySuggestions: () => void;
+  supabaseConfigured?: boolean;
+  syncUserEmail?: string | null;
+  onOpenSync?: () => void;
+  onSignOutSync?: () => void | Promise<void>;
 }
 
 export function ChatView({
   messages,
+  messagesLoading,
+  conversationSyncError,
   streamingContent,
   suggestions,
   isLoading,
@@ -52,6 +66,10 @@ export function ChatView({
   onOpenAbout,
   onReset: onLogout,
   onRetrySuggestions,
+  supabaseConfigured,
+  syncUserEmail,
+  onOpenSync,
+  onSignOutSync,
 }: ChatViewProps) {
   var messagesEndRef = useRef<HTMLDivElement>(null);
   var messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -231,6 +249,15 @@ export function ChatView({
           </p>
         )}
 
+        {conversationSyncError && (
+          <p
+            role="alert"
+            style={{ fontSize: "0.85rem", marginTop: "1rem", color: "#a60", maxWidth: "28rem", marginLeft: "auto", marginRight: "auto" }}
+          >
+            {conversationSyncError}
+          </p>
+        )}
+
         {/* Manual API key entry */}
         <form onSubmit={handleApiKeySubmit} className="api-key-container">
           <p>Please enter your Anthropic API key to continue:</p>
@@ -239,6 +266,7 @@ export function ChatView({
             placeholder="Enter API key..."
             className="api-key-input"
             required
+            defaultValue={apiKeyFieldDefaultValue}
           />
           <button type="submit" className="api-key-button">
             Save Key
@@ -327,6 +355,21 @@ export function ChatView({
           KindLLM2
         </h2>
 
+        {conversationSyncError && (
+          <p
+            role="alert"
+            style={{
+              fontSize: "0.85rem",
+              margin: "0 auto 1rem auto",
+              color: "#a60",
+              maxWidth: "28rem",
+              textAlign: "center",
+            }}
+          >
+            {conversationSyncError}
+          </p>
+        )}
+
         {/* Model selector */}
         <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
           <button
@@ -385,20 +428,26 @@ export function ChatView({
           )}
         </div>
 
-        <div id="messages">
-          {messages.map(function (message, index) {
-            return <Message key={index} message={message} />;
-          })}
-          {streamingContent !== null && streamingSplit && (
-            <div className="message-assistant">
-              {streamingHtml ? <div dangerouslySetInnerHTML={{ __html: streamingHtml }} /> : null}
-              {streamingSplit.plain ? (
-                <span style={{ whiteSpace: "pre-wrap" }}>{streamingSplit.plain}</span>
-              ) : null}
-              <span style={{ opacity: 0.4 }}>▌</span>
-            </div>
-          )}
-        </div>
+        {messagesLoading ? (
+          <p role="status" style={{ textAlign: "center", margin: "2rem 0", color: "#666" }}>
+            Loading conversation…
+          </p>
+        ) : (
+          <div id="messages">
+            {messages.map(function (message, index) {
+              return <Message key={index} message={message} />;
+            })}
+            {streamingContent !== null && streamingSplit && (
+              <div className="message-assistant">
+                {streamingHtml ? <div dangerouslySetInnerHTML={{ __html: streamingHtml }} /> : null}
+                {streamingSplit.plain ? (
+                  <span style={{ whiteSpace: "pre-wrap" }}>{streamingSplit.plain}</span>
+                ) : null}
+                <span style={{ opacity: 0.4 }}>▌</span>
+              </div>
+            )}
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
       <ChatBox
@@ -406,7 +455,7 @@ export function ChatView({
         suggestions={suggestions}
         onSuggestionClick={onSuggestionClick}
         onRetrySuggestions={onRetrySuggestions}
-        isLoading={isLoading}
+        isLoading={isLoading || Boolean(messagesLoading)}
         isLoadingSuggestions={isLoadingSuggestions}
         apiKey={apiKey}
         messages={messages}
@@ -416,7 +465,15 @@ export function ChatView({
           Debug logging is on. Turn off from About → Diagnostics (clear log).
         </p>
       )}
-      <Footer onClearChat={onClearChat} onOpenAbout={onOpenAbout} onLogout={onLogout} />
+      <Footer
+        onClearChat={onClearChat}
+        onOpenAbout={onOpenAbout}
+        onLogout={onLogout}
+        supabaseConfigured={supabaseConfigured}
+        syncUserEmail={syncUserEmail}
+        onOpenSync={onOpenSync}
+        onSignOutSync={onSignOutSync}
+      />
     </div>
   );
 }

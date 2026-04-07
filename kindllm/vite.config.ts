@@ -1,9 +1,17 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
 
-export default defineConfig({
+export default defineConfig(function ({ command }) {
+  // Never embed dev-only API key prefill in built output (any `vite build`, any --mode).
+  var stripPrefillInBuild =
+    command === "build"
+      ? { "import.meta.env.VITE_PREFILL_API_KEY": JSON.stringify("") }
+      : {};
+
+  return {
   // Relative URLs so the site works when hosted under a subpath (e.g. GitHub Pages project sites).
   base: "./",
+  define: stripPrefillInBuild,
   build: {
     outDir: "dist",
     emptyOutDir: true,
@@ -33,4 +41,5 @@ export default defineConfig({
     },
     dedupe: ["preact", "preact/compat", "preact/hooks"],
   },
+};
 });

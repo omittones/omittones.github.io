@@ -12,6 +12,8 @@ import { splitStreamingMarkdown } from "../utils/streaming-markdown";
 
 interface ChatViewProps {
   messages: MessageType[];
+  messagesLoading?: boolean;
+  conversationSyncError?: string | null;
   streamingContent: string | null;
   suggestions: string[];
   isLoading: boolean;
@@ -34,6 +36,8 @@ interface ChatViewProps {
 
 export function ChatView({
   messages,
+  messagesLoading,
+  conversationSyncError,
   streamingContent,
   suggestions,
   isLoading,
@@ -231,6 +235,15 @@ export function ChatView({
           </p>
         )}
 
+        {conversationSyncError && (
+          <p
+            role="alert"
+            style={{ fontSize: "0.85rem", marginTop: "1rem", color: "#a60", maxWidth: "28rem", marginLeft: "auto", marginRight: "auto" }}
+          >
+            {conversationSyncError}
+          </p>
+        )}
+
         {/* Manual API key entry */}
         <form onSubmit={handleApiKeySubmit} className="api-key-container">
           <p>Please enter your Anthropic API key to continue:</p>
@@ -327,6 +340,21 @@ export function ChatView({
           KindLLM2
         </h2>
 
+        {conversationSyncError && (
+          <p
+            role="alert"
+            style={{
+              fontSize: "0.85rem",
+              margin: "0 auto 1rem auto",
+              color: "#a60",
+              maxWidth: "28rem",
+              textAlign: "center",
+            }}
+          >
+            {conversationSyncError}
+          </p>
+        )}
+
         {/* Model selector */}
         <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
           <button
@@ -385,20 +413,26 @@ export function ChatView({
           )}
         </div>
 
-        <div id="messages">
-          {messages.map(function (message, index) {
-            return <Message key={index} message={message} />;
-          })}
-          {streamingContent !== null && streamingSplit && (
-            <div className="message-assistant">
-              {streamingHtml ? <div dangerouslySetInnerHTML={{ __html: streamingHtml }} /> : null}
-              {streamingSplit.plain ? (
-                <span style={{ whiteSpace: "pre-wrap" }}>{streamingSplit.plain}</span>
-              ) : null}
-              <span style={{ opacity: 0.4 }}>▌</span>
-            </div>
-          )}
-        </div>
+        {messagesLoading ? (
+          <p role="status" style={{ textAlign: "center", margin: "2rem 0", color: "#666" }}>
+            Loading conversation…
+          </p>
+        ) : (
+          <div id="messages">
+            {messages.map(function (message, index) {
+              return <Message key={index} message={message} />;
+            })}
+            {streamingContent !== null && streamingSplit && (
+              <div className="message-assistant">
+                {streamingHtml ? <div dangerouslySetInnerHTML={{ __html: streamingHtml }} /> : null}
+                {streamingSplit.plain ? (
+                  <span style={{ whiteSpace: "pre-wrap" }}>{streamingSplit.plain}</span>
+                ) : null}
+                <span style={{ opacity: 0.4 }}>▌</span>
+              </div>
+            )}
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
       <ChatBox
@@ -406,7 +440,7 @@ export function ChatView({
         suggestions={suggestions}
         onSuggestionClick={onSuggestionClick}
         onRetrySuggestions={onRetrySuggestions}
-        isLoading={isLoading}
+        isLoading={isLoading || Boolean(messagesLoading)}
         isLoadingSuggestions={isLoadingSuggestions}
         apiKey={apiKey}
         messages={messages}

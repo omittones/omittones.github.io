@@ -1,9 +1,9 @@
 import { logger } from "../diagnostic-log";
 
 interface FooterProps {
-  onClearChat: () => void;
+  onClearChat: () => void | Promise<void>;
   onOpenAbout: () => void;
-  onLogout: () => void;
+  onLogout: () => void | Promise<void>;
 }
 
 export function Footer({ onClearChat, onOpenAbout, onLogout }: FooterProps) {

@@ -7,13 +7,20 @@ import {
   Message,
   getApiKey,
   setApiKey,
-  getMessages,
-  setMessages,
-  clearMessages,
   clearAll,
   getSelectedModel,
   setSelectedModel as persistSelectedModel,
 } from "./storage";
+import {
+  initSupabase,
+  loadLatestConversation,
+  isSupabaseConfigured,
+  ensureConversationId,
+  insertChatMessage,
+  clearConversationMessages,
+  signOutRemote,
+  getCurrentConversationId,
+} from "./supabase";
 import { streamNextMessage, getSuggestions, DEFAULT_MODEL, getModelById } from "./llm";
 import { fetchApiKeyFromDpaste } from "./dpaste";
 import { logger, isDiagnosticDebugEnabled } from "./diagnostic-log";
@@ -46,10 +53,15 @@ function getInitialView(): View {
 }
 
 export function App() {
-  // State — initial values read synchronously from localStorage to avoid flicker
   var [view, setView] = useState<View>(getInitialView);
   var [apiKey, setApiKeyState] = useState<string>(getApiKey);
-  var [messages, setMessagesState] = useState<Message[]>(getMessages);
+  var [messages, setMessagesState] = useState<Message[]>(function () {
+    return [];
+  });
+  var [messagesLoading, setMessagesLoading] = useState<boolean>(function () {
+    return getInitialView() === "chat";
+  });
+  var [conversationSyncError, setConversationSyncError] = useState<string | null>(null);
   var [isLoading, setIsLoading] = useState<boolean>(false);
   var [suggestions, setSuggestions] = useState<string[]>([]);
   var [isLoadingSuggestions, setIsLoadingSuggestions] = useState<boolean>(false);
@@ -66,6 +78,49 @@ export function App() {
   var [diagnosticsDebugUi, setDiagnosticsDebugUi] = useState(function () {
     return isDiagnosticDebugEnabled();
   });
+
+  useEffect(
+    function () {
+      if (view !== "chat") {
+        return;
+      }
+      var cancelled = false;
+      setMessagesLoading(true);
+      setConversationSyncError(null);
+      (async function () {
+        if (!isSupabaseConfigured()) {
+          setMessagesState([]);
+          if (!cancelled) {
+            setMessagesLoading(false);
+          }
+          return;
+        }
+        var init = await initSupabase();
+        if (cancelled) {
+          return;
+        }
+        if (!init.ok) {
+          setConversationSyncError(init.error || "Could not connect to Supabase.");
+          setMessagesState([]);
+          setMessagesLoading(false);
+          return;
+        }
+        var load = await loadLatestConversation();
+        if (cancelled) {
+          return;
+        }
+        if (load.error) {
+          setConversationSyncError(load.error);
+        }
+        setMessagesState(load.messages);
+        setMessagesLoading(false);
+      })();
+      return function () {
+        cancelled = true;
+      };
+    },
+    [view],
+  );
 
   // Handle hash-based routing for privacy page
   useEffect(function () {
@@ -126,11 +181,27 @@ export function App() {
       setIsLoading(true);
       logger("app").debug("sendMessage state", { loading: true });
 
-      // Add user message
       var newUserMessage: Message = { role: "user", content: messageText };
       var updatedMessages = [...messages, newUserMessage];
       setMessagesState(updatedMessages);
-      setMessages(updatedMessages);
+
+      var userPosition = messages.length;
+      if (isSupabaseConfigured()) {
+        var initSend = await initSupabase();
+        if (!initSend.ok) {
+          setConversationSyncError(initSend.error || "Sync failed.");
+        } else {
+          var cidUser = await ensureConversationId(selectedModel);
+          if (!cidUser) {
+            setConversationSyncError("Could not create conversation.");
+          } else {
+            var insUser = await insertChatMessage(cidUser, "user", messageText, userPosition);
+            if (insUser.error) {
+              setConversationSyncError(insUser.error);
+            }
+          }
+        }
+      }
 
       try {
         logger("llm").info("sendMessage start", {
@@ -154,7 +225,21 @@ export function App() {
         var assistantMessage: Message = { role: "assistant", content: response };
         var finalMessages = [...updatedMessages, assistantMessage];
         setMessagesState(finalMessages);
-        setMessages(finalMessages);
+
+        if (isSupabaseConfigured()) {
+          var cidAsst = getCurrentConversationId();
+          if (cidAsst) {
+            var insAsst = await insertChatMessage(
+              cidAsst,
+              "assistant",
+              response,
+              userPosition + 1,
+            );
+            if (insAsst.error) {
+              setConversationSyncError(insAsst.error);
+            }
+          }
+        }
 
         // Get suggestions after receiving response
         setIsLoadingSuggestions(true);
@@ -173,14 +258,27 @@ export function App() {
         var errMsg = e instanceof Error ? e.message : String(e);
         setStreamingContent(null);
         logger("llm").error("sendMessage failed", { message: errMsg });
-        // Handle error - add error message
         var errorMessage: Message = {
           role: "assistant",
           content: "Sorry, there was an error. Please check your API key and try again.",
         };
         var errorMessages = [...updatedMessages, errorMessage];
         setMessagesState(errorMessages);
-        setMessages(errorMessages);
+
+        if (isSupabaseConfigured()) {
+          var cidErr = getCurrentConversationId();
+          if (cidErr) {
+            var insErr = await insertChatMessage(
+              cidErr,
+              "assistant",
+              errorMessage.content,
+              userPosition + 1,
+            );
+            if (insErr.error) {
+              setConversationSyncError(insErr.error);
+            }
+          }
+        }
       } finally {
         setIsLoading(false);
         logger("app").debug("sendMessage state", { loading: false });
@@ -200,11 +298,20 @@ export function App() {
   );
 
   // Clear chat
-  var handleClearChat = useCallback(function () {
+  var handleClearChat = useCallback(async function () {
     logger("app").info("clear chat requested");
+    var cid = getCurrentConversationId();
+    if (cid && isSupabaseConfigured()) {
+      var initClr = await initSupabase();
+      if (initClr.ok) {
+        var clr = await clearConversationMessages(cid);
+        if (clr.error) {
+          setConversationSyncError(clr.error);
+        }
+      }
+    }
     setMessagesState([]);
     setSuggestions([]);
-    clearMessages();
   }, []);
 
   var handleOpenAbout = useCallback(function () {
@@ -213,13 +320,16 @@ export function App() {
   }, []);
 
   // Reset everything and go back to landing
-  var handleReset = useCallback(function () {
+  var handleReset = useCallback(async function () {
     logger("app").info("logout / reset all");
+    await signOutRemote();
     clearAll();
     setApiKeyState("");
     setMessagesState([]);
     setSuggestions([]);
     setSelectedModelState(DEFAULT_MODEL.id);
+    setConversationSyncError(null);
+    setMessagesLoading(false);
     window.location.hash = "";
     setView("landing");
   }, []);
@@ -320,6 +430,8 @@ export function App() {
   return (
     <ChatView
       messages={messages}
+      messagesLoading={messagesLoading}
+      conversationSyncError={conversationSyncError}
       suggestions={suggestions}
       isLoading={isLoading}
       isLoadingSuggestions={isLoadingSuggestions}

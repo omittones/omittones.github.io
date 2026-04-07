@@ -1,6 +1,19 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render } from "preact";
 import { App } from "./app";
+
+vi.mock("./supabase", function () {
+  return {
+    isSupabaseConfigured: vi.fn().mockReturnValue(false),
+    initSupabase: vi.fn().mockResolvedValue({ ok: true }),
+    loadLatestConversation: vi.fn().mockResolvedValue({ conversationId: null, messages: [] }),
+    ensureConversationId: vi.fn().mockResolvedValue(null),
+    insertChatMessage: vi.fn().mockResolvedValue({}),
+    clearConversationMessages: vi.fn().mockResolvedValue({}),
+    signOutRemote: vi.fn().mockResolvedValue(undefined),
+    getCurrentConversationId: vi.fn().mockReturnValue(null),
+  };
+});
 
 describe("App", function () {
   var container: HTMLDivElement;

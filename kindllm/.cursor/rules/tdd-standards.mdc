@@ -18,6 +18,7 @@ Skipping step 1 or implementing before a failing test is **not** TDD; call it ou
 
 ## What this means for agents
 
+- **Package manager:** Use **`pnpm`** for dependencies and scripts (`pnpm test`, `pnpm add`, `pnpm build`). Do not use `npm` or `yarn` (this repo uses `pnpm-lock.yaml`).
 - When fixing a bug: reproduce it in a test (or extend an existing one), confirm red, then fix.
 - When adding a feature: define acceptance as tests, confirm red, then implement.
 - When the user only asks for a test or only for code with no test request, follow their scope; otherwise prefer red-first.

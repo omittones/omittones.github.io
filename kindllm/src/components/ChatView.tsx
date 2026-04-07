@@ -10,6 +10,12 @@ import { logger } from "../diagnostic-log";
 import { FEATURE_CHAT_AUTOSCROLL } from "../feature-flags";
 import { splitStreamingMarkdown } from "../utils/streaming-markdown";
 
+var ENV_PREFILL_API_KEY = import.meta.env.VITE_PREFILL_API_KEY;
+var apiKeyFieldDefaultValue =
+  typeof ENV_PREFILL_API_KEY === "string" && ENV_PREFILL_API_KEY.trim() !== ""
+    ? ENV_PREFILL_API_KEY
+    : undefined;
+
 interface ChatViewProps {
   messages: MessageType[];
   messagesLoading?: boolean;
@@ -32,6 +38,10 @@ interface ChatViewProps {
   onOpenAbout: () => void;
   onReset: () => void;
   onRetrySuggestions: () => void;
+  supabaseConfigured?: boolean;
+  syncUserEmail?: string | null;
+  onOpenSync?: () => void;
+  onSignOutSync?: () => void | Promise<void>;
 }
 
 export function ChatView({
@@ -56,6 +66,10 @@ export function ChatView({
   onOpenAbout,
   onReset: onLogout,
   onRetrySuggestions,
+  supabaseConfigured,
+  syncUserEmail,
+  onOpenSync,
+  onSignOutSync,
 }: ChatViewProps) {
   var messagesEndRef = useRef<HTMLDivElement>(null);
   var messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -252,6 +266,7 @@ export function ChatView({
             placeholder="Enter API key..."
             className="api-key-input"
             required
+            defaultValue={apiKeyFieldDefaultValue}
           />
           <button type="submit" className="api-key-button">
             Save Key
@@ -450,7 +465,15 @@ export function ChatView({
           Debug logging is on. Turn off from About → Diagnostics (clear log).
         </p>
       )}
-      <Footer onClearChat={onClearChat} onOpenAbout={onOpenAbout} onLogout={onLogout} />
+      <Footer
+        onClearChat={onClearChat}
+        onOpenAbout={onOpenAbout}
+        onLogout={onLogout}
+        supabaseConfigured={supabaseConfigured}
+        syncUserEmail={syncUserEmail}
+        onOpenSync={onOpenSync}
+        onSignOutSync={onSignOutSync}
+      />
     </div>
   );
 }

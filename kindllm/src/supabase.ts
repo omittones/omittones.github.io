@@ -14,6 +14,10 @@ export function isSupabaseConfigured(): boolean {
   return Boolean(url && key);
 }
 
+export function getSupabaseBrowserClient(): SupabaseClient | null {
+  return getOrCreateClient();
+}
+
 function getOrCreateClient(): SupabaseClient | null {
   if (client) {
     return client;

@@ -12,6 +12,7 @@ vi.mock("./supabase", function () {
     clearConversationMessages: vi.fn().mockResolvedValue({}),
     signOutRemote: vi.fn().mockResolvedValue(undefined),
     getCurrentConversationId: vi.fn().mockReturnValue(null),
+    getSupabaseBrowserClient: vi.fn().mockReturnValue(null),
   };
 });
 

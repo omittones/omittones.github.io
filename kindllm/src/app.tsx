@@ -1,3 +1,4 @@
+import { Fragment } from "preact";
 import { useState, useEffect, useCallback } from "preact/hooks";
 import { ChatView } from "./components/ChatView";
 import { LandingView } from "./components/LandingView";
@@ -20,7 +21,10 @@ import {
   clearConversationMessages,
   signOutRemote,
   getCurrentConversationId,
+  getSupabaseBrowserClient,
 } from "./supabase";
+import { signOutSyncRestoreGuest } from "./auth-sync";
+import { SyncAccountModal } from "./components/SyncAccountModal";
 import { streamNextMessage, getSuggestions, DEFAULT_MODEL, getModelById } from "./llm";
 import { fetchApiKeyFromDpaste } from "./dpaste";
 import { logger, isDiagnosticDebugEnabled } from "./diagnostic-log";
@@ -78,6 +82,62 @@ export function App() {
   var [diagnosticsDebugUi, setDiagnosticsDebugUi] = useState(function () {
     return isDiagnosticDebugEnabled();
   });
+  var [syncWizardOpen, setSyncWizardOpen] = useState(false);
+  var [syncUserEmail, setSyncUserEmail] = useState<string | null>(null);
+
+  var refreshConversationFromServer = useCallback(async function () {
+    if (!isSupabaseConfigured()) {
+      return;
+    }
+    var init = await initSupabase();
+    if (!init.ok) {
+      setConversationSyncError(init.error || "Could not connect.");
+      return;
+    }
+    setMessagesLoading(true);
+    setConversationSyncError(null);
+    var load = await loadLatestConversation();
+    if (load.error) {
+      setConversationSyncError(load.error);
+    }
+    setMessagesState(load.messages);
+    setMessagesLoading(false);
+  }, []);
+
+  useEffect(
+    function () {
+      if (view !== "chat" || !isSupabaseConfigured()) {
+        setSyncUserEmail(null);
+        return;
+      }
+      var sb = getSupabaseBrowserClient();
+      if (!sb) {
+        return;
+      }
+      function applySession(user: { email?: string; is_anonymous?: boolean } | null) {
+        if (user && user.email && !user.is_anonymous) {
+          setSyncUserEmail(String(user.email));
+        } else {
+          setSyncUserEmail(null);
+        }
+      }
+      function read() {
+        sb.auth.getSession().then(function (res) {
+          var u = res.data.session ? res.data.session.user : null;
+          applySession(u);
+        });
+      }
+      read();
+      var sub = sb.auth.onAuthStateChange(function (_evt, session) {
+        var u = session ? session.user : null;
+        applySession(u);
+      });
+      return function () {
+        sub.data.subscription.unsubscribe();
+      };
+    },
+    [view],
+  );
 
   useEffect(
     function () {
@@ -319,6 +379,19 @@ export function App() {
     window.location.hash = "#about";
   }, []);
 
+  var handleSignOutSync = useCallback(
+    async function () {
+      var r = await signOutSyncRestoreGuest();
+      if (r.error) {
+        setConversationSyncError(r.error);
+        logger("app").warn("sign out sync failed", { message: r.error });
+        return;
+      }
+      await refreshConversationFromServer();
+    },
+    [refreshConversationFromServer],
+  );
+
   // Reset everything and go back to landing
   var handleReset = useCallback(async function () {
     logger("app").info("logout / reset all");
@@ -330,6 +403,8 @@ export function App() {
     setSelectedModelState(DEFAULT_MODEL.id);
     setConversationSyncError(null);
     setMessagesLoading(false);
+    setSyncWizardOpen(false);
+    setSyncUserEmail(null);
     window.location.hash = "";
     setView("landing");
   }, []);
@@ -428,28 +503,43 @@ export function App() {
   }
 
   return (
-    <ChatView
-      messages={messages}
-      messagesLoading={messagesLoading}
-      conversationSyncError={conversationSyncError}
-      suggestions={suggestions}
-      isLoading={isLoading}
-      isLoadingSuggestions={isLoadingSuggestions}
-      apiKey={apiKey}
-      debugMode={diagnosticsDebugUi}
-      dpasteError={dpasteError}
-      isLoadingDpaste={isLoadingDpaste}
-      selectedModel={selectedModel}
-      streamingContent={streamingContent}
-      onSendMessage={handleSendMessage}
-      onSuggestionClick={handleSuggestionClick}
-      onSaveApiKey={handleSaveApiKey}
-      onLoadApiKeyFromDpaste={handleLoadApiKeyFromDpaste}
-      onModelChange={handleModelChange}
-      onClearChat={handleClearChat}
-      onOpenAbout={handleOpenAbout}
-      onReset={handleReset}
-      onRetrySuggestions={handleRetrySuggestions}
-    />
+    <Fragment>
+      <ChatView
+        messages={messages}
+        messagesLoading={messagesLoading}
+        conversationSyncError={conversationSyncError}
+        suggestions={suggestions}
+        isLoading={isLoading}
+        isLoadingSuggestions={isLoadingSuggestions}
+        apiKey={apiKey}
+        debugMode={diagnosticsDebugUi}
+        dpasteError={dpasteError}
+        isLoadingDpaste={isLoadingDpaste}
+        selectedModel={selectedModel}
+        streamingContent={streamingContent}
+        onSendMessage={handleSendMessage}
+        onSuggestionClick={handleSuggestionClick}
+        onSaveApiKey={handleSaveApiKey}
+        onLoadApiKeyFromDpaste={handleLoadApiKeyFromDpaste}
+        onModelChange={handleModelChange}
+        onClearChat={handleClearChat}
+        onOpenAbout={handleOpenAbout}
+        onReset={handleReset}
+        onRetrySuggestions={handleRetrySuggestions}
+        supabaseConfigured={isSupabaseConfigured() && Boolean(apiKey)}
+        syncUserEmail={syncUserEmail}
+        onOpenSync={function () {
+          setSyncWizardOpen(true);
+        }}
+        onSignOutSync={handleSignOutSync}
+      />
+      <SyncAccountModal
+        open={syncWizardOpen}
+        onClose={function () {
+          setSyncWizardOpen(false);
+        }}
+        onSessionResolved={refreshConversationFromServer}
+      />
+    </Fragment>
   );
 }

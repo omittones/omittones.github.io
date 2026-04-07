@@ -10,6 +10,13 @@ var HAIKU_MODEL = "claude-haiku-4-5";
 const BASE_URL = "https://api.anthropic.com/v1";
 const API_VERSION = "2023-06-01";
 
+/** Shared system instruction for main chat (streaming and non-streaming). */
+var MAIN_CHAT_SYSTEM_PROMPT =
+  "You are KindLLM2, a learning assistant for any topic. Help the user understand ideas, practice skills, and explore subjects at their level. " +
+  "Use clear explanations, concrete examples when they help, and step-by-step reasoning when appropriate. " +
+  "Ask a brief clarifying question if the learning goal or background is unclear. " +
+  "Be concise when a short answer is enough; go deeper when the user asks for detail. Stay accurate, neutral, and encouraging.";
+
 interface AnthropicMessage {
   role: "user" | "assistant";
   content: string;
@@ -69,8 +76,7 @@ export const anthropicProvider: LLMProvider = {
     messages: Message[],
     newMessage: string,
   ): Promise<string> {
-    var systemPrompt =
-      "You are a helpful assistant on a Kindle e-reader, called KindLLM2. You get straight to the point with a short answer and a pleasant demeanor.";
+    var systemPrompt = MAIN_CHAT_SYSTEM_PROMPT;
 
     // Build message history (Anthropic format)
     var messageHistory: AnthropicMessage[] = [];
@@ -157,8 +163,7 @@ export const anthropicProvider: LLMProvider = {
     }
     messageHistory.push({ role: "user", content: newMessage });
 
-    var systemPrompt =
-      "You are a helpful assistant on a Kindle e-reader, called KindLLM2. You get straight to the point with a short answer and a pleasant demeanor.";
+    var systemPrompt = MAIN_CHAT_SYSTEM_PROMPT;
 
     logger("provider.anthropic").debug("stream request", {
       model: modelId,
@@ -246,7 +251,7 @@ export const anthropicProvider: LLMProvider = {
     }
 
     var suggestionsPrompt =
-      'Given the following conversation, generate three insightful follow-up questions as a JSON object with a "suggestions" array:\n\n' +
+      'Given the following conversation between a learner and KindLLM2 (a learning assistant), generate three insightful follow-up questions that deepen learning, as a JSON object with a "suggestions" array:\n\n' +
       "User: " +
       previousMessage.content +
       "\n\n" +
@@ -324,8 +329,8 @@ export async function getTypingAutocomplete(
   }
 
   var prompt =
-    "You are helping a user on a Kindle e-reader complete the message they are typing to an AI assistant. " +
-    "Typing is difficult on a Kindle, so suggest 2-3 useful completions.\n\n" +
+    "You are helping a learner complete the message they are typing to KindLLM2, a learning assistant for any topic. " +
+    "Suggest 2-3 useful completions that continue their question or learning goal; keep each completion focused and natural.\n\n" +
     (contextStr ? "Recent conversation:\n" + contextStr + "\n" : "") +
     'The user has typed so far: "' +
     partialText +

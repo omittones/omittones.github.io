@@ -2,6 +2,9 @@
 import { useEffect } from "preact/hooks";
 import { logger } from "../diagnostic-log";
 
+// TODO: The "Logo mounted" debug log fires on every page (Logo is used in LandingView,
+// ChatView, and the API key screen). This adds noise with no diagnostic value.
+// Remove it, or move mount-logging to higher-level components only.
 export function Logo() {
   useEffect(function () {
     logger("logo").debug("Logo mounted");

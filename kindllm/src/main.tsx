@@ -62,6 +62,9 @@ window.addEventListener("offline", function () {
   logger("bootstrap").warn("network offline");
 });
 
+// TODO: No error boundary wrapping <App />. An unhandled render error crashes the entire UI
+// with no recovery path. Add a Preact error boundary component that catches render errors
+// and shows a fallback "Something went wrong" screen with a reload button.
 var appRoot = document.getElementById("app");
 if (!appRoot) {
   logger("bootstrap").error("missing #app container — render aborted");

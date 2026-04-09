@@ -1,6 +1,10 @@
 // Redact secrets from diagnostic strings before buffer or upload
 // ES5 compatible - no optional chaining or nullish coalescing
 
+// TODO (OCP): Redaction patterns are hardcoded. Adding support for a new key format
+// (e.g. Google Gemini, AWS, etc.) requires modifying this function. Consider making
+// patterns configurable — accept an array of { regex, replacement } objects so callers
+// can extend without touching this module.
 /**
  * Apply conservative redaction patterns for API keys and auth headers.
  */

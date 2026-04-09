@@ -1,6 +1,9 @@
 import { useEffect } from "preact/hooks";
 import { logger } from "../diagnostic-log";
 
+// TODO: Privacy text references "Anyscale Endpoints" and links to Anyscale's privacy policy,
+// but the primary provider is now Anthropic Claude. Update the copy and link to reflect
+// the actual providers in use, or make it dynamic based on AVAILABLE_MODELS providers.
 export function PrivacyView() {
   useEffect(function () {
     logger("privacy").debug("PrivacyView mounted");

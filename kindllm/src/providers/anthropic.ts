@@ -10,6 +10,8 @@ var HAIKU_MODEL = "claude-haiku-4-5";
 const BASE_URL = "https://api.anthropic.com/v1";
 const API_VERSION = "2023-06-01";
 
+// TODO (DRY): This system prompt is nearly identical to the one in anyscale.ts.
+// Extract into a shared constant (e.g. `src/prompts.ts`) so changes stay in sync.
 /** Shared system instruction for main chat (streaming and non-streaming). */
 var MAIN_CHAT_SYSTEM_PROMPT =
   "You are KindLLM2, a learning assistant for any topic. Help the user understand ideas, practice skills, and explore subjects at their level. " +
@@ -66,6 +68,22 @@ function stripMarkdownJsonFence(raw: string): string {
   return s.trim();
 }
 
+// TODO (DRY): The Anthropic request headers are repeated 4 times in this file (getNextMessage,
+// streamNextMessage, getSuggestions, getTypingAutocomplete). Extract into a helper:
+//   function anthropicHeaders(apiKey: string): Record<string, string>
+
+// TODO (DRY): The message-history building loop (filter to user/assistant, append new user msg)
+// is duplicated in getNextMessage and streamNextMessage. Extract into:
+//   function buildMessageHistory(messages: Message[], newMessage: string): AnthropicMessage[]
+
+// TODO (DRY): The response content extraction pattern
+// `data.content && data.content.length > 0 && data.content[0] && data.content[0].text`
+// is repeated 3 times. Extract into:
+//   function extractAnthropicText(data: AnthropicResponse): string | null
+
+// TODO (DRY): The HTTP error handling pattern (read body, log, throw) is repeated in
+// getNextMessage and streamNextMessage. Extract into a shared helper.
+
 export const anthropicProvider: LLMProvider = {
   id: "anthropic",
   name: "Anthropic",
@@ -78,11 +96,9 @@ export const anthropicProvider: LLMProvider = {
   ): Promise<string> {
     var systemPrompt = MAIN_CHAT_SYSTEM_PROMPT;
 
-    // Build message history (Anthropic format)
     var messageHistory: AnthropicMessage[] = [];
     for (var i = 0; i < messages.length; i++) {
       var msg = messages[i];
-      // Anthropic only accepts "user" and "assistant" roles
       if (msg.role === "user" || msg.role === "assistant") {
         messageHistory.push({
           role: msg.role,
@@ -91,12 +107,13 @@ export const anthropicProvider: LLMProvider = {
       }
     }
 
-    // Add new user message
     messageHistory.push({
       role: "user",
       content: newMessage,
     });
 
+    // TODO: max_tokens is hardcoded to 4096 but ModelConfig defines maxTokens per model.
+    // Use the model's configured maxTokens instead of this magic number.
     var requestBody: AnthropicRequest = {
       model: modelId,
       messages: messageHistory,
@@ -136,7 +153,6 @@ export const anthropicProvider: LLMProvider = {
 
     var data: AnthropicResponse = await response.json();
 
-    // Extract content from response
     if (data.content && data.content.length > 0 && data.content[0] && data.content[0].text) {
       var out = data.content[0].text;
       logger("provider.anthropic").info("messages ok", { outLen: out.length });
@@ -307,6 +323,10 @@ export const anthropicProvider: LLMProvider = {
   },
 };
 
+// TODO (SRP / OCP): This standalone function lives in the Anthropic provider file but is not
+// part of the LLMProvider interface. It is called directly by llm.ts, bypassing the provider
+// abstraction. Either add `getTypingAutocomplete` to the LLMProvider interface (so each
+// provider can implement it) or move this to its own module with Anthropic as a dependency.
 /**
  * Generate typing autocomplete completions using Haiku.
  * Always uses Haiku regardless of the user's selected model for speed and cost.

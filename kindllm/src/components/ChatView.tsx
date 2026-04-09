@@ -16,6 +16,12 @@ var apiKeyFieldDefaultValue =
     ? ENV_PREFILL_API_KEY
     : undefined;
 
+// TODO (ISP / SRP): ChatViewProps has 23 properties — a sign the component does too much.
+// The API-key setup UI (rendered when !apiKey) is a separate concern from the chat UI.
+// Extract `<ApiKeySetup>` into its own component with only the props it needs
+// (onSaveApiKey, onLoadApiKeyFromDpaste, dpasteError, isLoadingDpaste, debugMode, etc.).
+// The remaining chat props could be further grouped (e.g. pass a `sync` object for
+// supabaseConfigured + syncUserEmail + onOpenSync + onSignOutSync).
 interface ChatViewProps {
   messages: MessageType[];
   messagesLoading?: boolean;
@@ -237,7 +243,8 @@ export function ChatView({
     setDpasteCode(target.value);
   }, []);
 
-  // Show API key input if no API key
+  // TODO (SRP): This entire block (API key setup + dpaste form) is a separate view.
+  // Extract into an <ApiKeySetup /> component to keep ChatView focused on chat rendering.
   if (!apiKey) {
     return (
       <div style={{ padding: "2rem", textAlign: "center" }}>
@@ -370,7 +377,10 @@ export function ChatView({
           </p>
         )}
 
-        {/* Model selector */}
+        {/* TODO (SRP): The model selector dropdown is a reusable widget. Extract into a
+            <ModelSelector> component to reduce ChatView complexity and allow reuse. */}
+        {/* TODO: Extensive inline styles throughout this component should be moved to CSS classes
+            in styles.css for consistency and maintainability. */}
         <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
           <button
             onClick={handleToggleModelSelector}
@@ -434,6 +444,8 @@ export function ChatView({
           </p>
         ) : (
           <div id="messages">
+            {/* TODO: Using array index as key causes re-render issues when messages are
+                reordered or deleted. Use a stable unique id (e.g. add an `id` field to Message). */}
             {messages.map(function (message, index) {
               return <Message key={index} message={message} />;
             })}

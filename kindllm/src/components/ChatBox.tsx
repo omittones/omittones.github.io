@@ -152,6 +152,7 @@ export function ChatBox({
           {isLoadingAutocomplete && autocompletions.length === 0 && (
             <div className="autocomplete-loading">Suggesting...</div>
           )}
+          {/* TODO: Using array index as key here can cause stale UI when completions reorder. */}
           {autocompletions.map(function (completion, index) {
             return (
               <button
@@ -187,6 +188,9 @@ export function ChatBox({
           <span className="send-text">Send</span>
         </button>
       </div>
+      {/* TODO: Dead code — this Suggestions component has been commented out. Either re-enable
+          it or remove the commented-out JSX and the unused Suggestions import / props
+          (suggestions, onSuggestionClick, onRetrySuggestions, isLoadingSuggestions). */}
       {/* <Suggestions
         suggestions={suggestions}
         onSuggestionClick={onSuggestionClick}

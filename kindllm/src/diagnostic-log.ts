@@ -230,6 +230,9 @@ export function resetDiagnosticLogForTests(): void {
   config = { ...defaultConfig };
 }
 
+// TODO (perf): logger() creates a new object with 4 closures on every call. Since it's called
+// frequently (every component mount, every click handler), consider caching instances
+// by scope (e.g. `var cache: Record<string, Logger> = {};`).
 export function logger(scope: string) {
   return {
     debug: function (message: string, data?: unknown) {
@@ -267,6 +270,8 @@ export function clearDiagnosticLog(): void {
   }
 }
 
+// TODO (SRP): copyTextToClipboard has nothing to do with diagnostic logging.
+// Move to a general-purpose utility module (e.g. `src/utils/clipboard.ts`).
 /**
  * Copy text to clipboard; may reject on unsupported browsers.
  */
@@ -277,6 +282,9 @@ export function copyTextToClipboard(text: string): Promise<void> {
   return Promise.reject(new Error("Clipboard API not available"));
 }
 
+// TODO (SRP): Global error handler installation is a bootstrap concern, not a logging concern.
+// Move to a dedicated module (e.g. `src/error-handlers.ts`) that imports logger,
+// keeping this file focused on the ring-buffer log implementation.
 export function installGlobalErrorHandlers(): void {
   logger("global").debug("installing window.onerror and unhandledrejection listeners");
   window.onerror = function (message, source, lineno, colno, _err) {

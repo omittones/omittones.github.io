@@ -21,6 +21,11 @@ interface ChatCompletionResponse {
   }>;
 }
 
+// TODO (LSP): anyscaleProvider.getNextMessage ignores the `modelId` parameter and always uses
+// the hardcoded MODEL constant. This violates the LLMProvider contract — callers expect modelId
+// to be respected. Either use modelId or document why it's intentionally ignored.
+
+// TODO (DRY): The system prompt is duplicated from anthropic.ts. Extract into a shared constant.
 export const anyscaleProvider: LLMProvider = {
   id: "anyscale",
   name: "Anyscale",

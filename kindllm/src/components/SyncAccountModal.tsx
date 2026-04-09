@@ -19,6 +19,10 @@ export interface SyncAccountModalProps {
 type MergeChoice = "yes" | "no" | null;
 type Step = "choose" | "email" | "otp";
 
+// TODO: SyncAccountModal has significant inline styles (overlayStyle, panelStyle, per-element).
+// Move these to CSS classes in styles.css for consistency with the rest of the app.
+// TODO: Consider extracting the multi-step wizard state machine (choose → email → otp)
+// into a custom hook (e.g. useSyncWizard) to separate logic from presentation.
 export function SyncAccountModal({ open, onClose, onSessionResolved }: SyncAccountModalProps) {
   var [step, setStep] = useState<Step>("choose");
   var [mergeChoice, setMergeChoice] = useState<MergeChoice>(null);

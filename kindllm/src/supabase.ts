@@ -1,6 +1,14 @@
 // Supabase client and chat persistence (conversations + messages).
 // ES5 compatible in this module — no optional chaining or nullish coalescing.
 
+// TODO (SRP): This module handles three concerns — client lifecycle, auth, and
+// conversation/message CRUD. Split into separate modules (e.g. supabase-client.ts,
+// supabase-auth.ts, supabase-conversations.ts) to keep each file focused.
+
+// TODO (DIP / testability): Module-level mutable state (`client`, `currentConversationId`)
+// makes this impossible to test in isolation or reset between tests. Wrap state in a class
+// or use a factory function that returns the API + state together.
+
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Message } from "./storage";
 import { logger } from "./diagnostic-log";
@@ -14,6 +22,8 @@ export function isSupabaseConfigured(): boolean {
   return Boolean(url && key);
 }
 
+// TODO this is a very thin function, it makes no sense to have getOrCreateClient separate from getSupabaseBrowserClient, 
+// consolidate into one or comment on why is it needed to be like this
 export function getSupabaseBrowserClient(): SupabaseClient | null {
   return getOrCreateClient();
 }
@@ -150,6 +160,8 @@ export async function ensureConversationId(model: string): Promise<string | null
   return createConversation(model);
 }
 
+// TODO (DRY): Every exported async function starts with `var sb = getOrCreateClient(); if (!sb) return error;`.
+// Extract this guard into a helper that returns the client or throws/returns early.
 export async function insertChatMessage(
   conversationId: string,
   role: "user" | "assistant",
@@ -170,6 +182,8 @@ export async function insertChatMessage(
     logger("supabase").warn("insertChatMessage failed", { message: msgIns.error.message });
     return { error: msgIns.error.message };
   }
+  // TODO (DRY): `update({ updated_at: ... }).eq("id", conversationId)` is duplicated
+  // in insertChatMessage and clearConversationMessages. Extract a `touchConversation(id)` helper.
   await sb
     .from("conversations")
     .update({ updated_at: new Date().toISOString() })

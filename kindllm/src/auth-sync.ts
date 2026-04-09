@@ -2,6 +2,9 @@
 // Requires Supabase: anonymous sign-ins, email OTP template with {{ .Token }}, manual linking enabled.
 // ES5 compatible in this module.
 
+// TODO (DRY): Every function starts with `var sb = getSupabaseBrowserClient(); if (!sb) return { error: "..." };`.
+// Extract a `requireClient()` helper that either returns the client or throws/returns the error object.
+
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseBrowserClient } from "./supabase";
 import { logger } from "./diagnostic-log";
@@ -169,6 +172,10 @@ export async function restoreGuestAnonymousSession(): Promise<{ error?: string }
   return {};
 }
 
+// TODO: signOutSyncRestoreGuest and abortMergeYesPendingOtp are identical one-liner
+// wrappers around restoreGuestAnonymousSession. Either remove the wrappers and call
+// restoreGuestAnonymousSession directly, or add distinct behavior that justifies the
+// separate functions (e.g. different logging, different post-conditions).
 /**
  * Sign out of email sync on this device; continue as a new anonymous guest.
  */

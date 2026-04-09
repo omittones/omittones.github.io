@@ -31,6 +31,8 @@ import { logger, isDiagnosticDebugEnabled } from "./diagnostic-log";
 
 type View = "landing" | "chat" | "privacy" | "about";
 
+// TODO (DRY): Kindle detection logic is duplicated here and in handleHashChange below.
+// Extract into a shared helper, e.g. `isKindleDevice(): boolean`, and reuse.
 function getInitialView(): View {
   var path = window.location.pathname;
   var hash = window.location.hash;
@@ -56,6 +58,12 @@ function getInitialView(): View {
   return "landing";
 }
 
+// TODO (SRP): App is a god component (~550 lines, 15+ state variables). Break it up:
+//   - Extract routing logic into a useRouting() custom hook.
+//   - Extract Supabase sync state/effects into a useSyncState() custom hook.
+//   - Extract message sending + suggestions into a useChat() custom hook.
+//   - Extract API key / dpaste management into a useApiKey() custom hook.
+//   This would make each piece independently testable and keep App as a thin orchestrator.
 export function App() {
   var [view, setView] = useState<View>(getInitialView);
   var [apiKey, setApiKeyState] = useState<string>(getApiKey);
@@ -246,6 +254,9 @@ export function App() {
       setMessagesState(updatedMessages);
 
       var userPosition = messages.length;
+      // TODO (DRY): The "init Supabase → ensure conversation → insert message" pattern
+      // is repeated 3 times in this function (user msg, assistant msg, error msg).
+      // Extract into a helper like `syncMessageToSupabase(role, content, position)`.
       if (isSupabaseConfigured()) {
         var initSend = await initSupabase();
         if (!initSend.ok) {
@@ -314,6 +325,8 @@ export function App() {
           setSuggestions([]);
         }
         setIsLoadingSuggestions(false);
+      // TODO (DRY): `e instanceof Error ? e.message : String(e)` is used ~10 times
+      // across the codebase. Extract into a shared `toErrorMessage(e: unknown): string` utility.
       } catch (e) {
         var errMsg = e instanceof Error ? e.message : String(e);
         setStreamingContent(null);
@@ -392,7 +405,10 @@ export function App() {
     [refreshConversationFromServer],
   );
 
-  // Reset everything and go back to landing
+  // TODO (fragility): handleReset must manually clear every piece of state in the component.
+  // If a new state variable is added and forgotten here, stale state leaks across sessions.
+  // Custom hooks (useChat, useSyncState, etc.) could each expose their own reset(),
+  // making it impossible to miss one.
   var handleReset = useCallback(async function () {
     logger("app").info("logout / reset all");
     await signOutRemote();

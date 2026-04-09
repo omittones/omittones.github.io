@@ -14,6 +14,8 @@ export interface ModelConfig {
   defaultTemperature: number;
 }
 
+// TODO (DRY): This Message interface duplicates the one in ../storage.ts.
+// Use a single source of truth — either re-export from storage or define in a shared types file.
 export interface Message {
   role: "user" | "assistant";
   content: string;
@@ -122,7 +124,9 @@ export function getProviderForModel(modelId: string): LLMProvider {
 import { anthropicProvider } from "./anthropic";
 import { anyscaleProvider } from "./anyscale";
 
-// Provider registry
+// TODO (OCP): Adding a new provider requires modifying this file (add import + registry entry).
+// Consider a self-registering pattern where each provider module calls registerProvider(),
+// or use a lazy-loading map keyed by ProviderId.
 var providerRegistry: Record<ProviderId, LLMProvider> = {
   anthropic: anthropicProvider,
   anyscale: anyscaleProvider,

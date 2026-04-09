@@ -1,6 +1,9 @@
 // LLM API orchestrator using provider abstraction
 // ES5 compatible - no optional chaining or nullish coalescing
 
+// TODO (DRY): getNextMessage, getSuggestions, and streamNextMessage all repeat the same
+// "resolve model → get provider → delegate" pattern. Consider a generic dispatch helper
+// to reduce the boilerplate.
 import { Message } from "./storage";
 import { getModelById, getProviderForModel, DEFAULT_MODEL, AVAILABLE_MODELS } from "./providers";
 import { getTypingAutocomplete as anthropicGetTypingAutocomplete } from "./providers/anthropic";
@@ -85,6 +88,9 @@ export async function getSuggestions(
   return provider.getSuggestions(apiKey, model.id, messages);
 }
 
+// TODO (OCP): getTypingAutocomplete is hardwired to the Anthropic implementation.
+// If a new provider needs to supply autocomplete, this function must be modified.
+// Route through the provider abstraction (add to LLMProvider interface) instead.
 /**
  * Generate typing autocomplete completions using Haiku (fast, cheap).
  */

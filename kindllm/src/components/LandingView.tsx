@@ -71,6 +71,8 @@ export function LandingView({ onEnterChat }: LandingViewProps) {
           Surprisingly, Amazon recently updated the web browser on some Kindles and it now seems to
           be good enough to run simple interactive apps like this!
         </p>
+        {/* TODO (DRY): "Based on kindllm" attribution link appears twice in this component
+            and once more in About.tsx. Extract into a shared <Attribution /> component. */}
         <p>
           Based on{" "}
           <a style={{ color: "black" }} href="https://github.com/andersrex/kindllm">

@@ -19,6 +19,7 @@ export async function streamNextMessage(
   modelId: string | undefined,
   messages: Message[],
   newMessage: string,
+  systemPrompt: string,
   onChunk: (chunk: string) => void,
 ): Promise<string> {
   var model = modelId ? getModelById(modelId) : null;
@@ -32,12 +33,12 @@ export async function streamNextMessage(
   });
 
   if (provider.streamNextMessage) {
-    return provider.streamNextMessage(apiKey, model.id, messages, newMessage, onChunk);
+    return provider.streamNextMessage(apiKey, model.id, messages, newMessage, systemPrompt, onChunk);
   }
 
   // Fallback: non-streaming — deliver the full response as a single chunk
   logger("llm").debug("streamNextMessage fallback to non-streaming", { provider: provider.id });
-  var result = await provider.getNextMessage(apiKey, model.id, messages, newMessage);
+  var result = await provider.getNextMessage(apiKey, model.id, messages, newMessage, systemPrompt);
   onChunk(result);
   return result;
 }
@@ -50,6 +51,7 @@ export async function getNextMessage(
   modelId: string | undefined,
   messages: Message[],
   newMessage: string,
+  systemPrompt: string,
 ): Promise<string> {
   var model = modelId ? getModelById(modelId) : null;
   if (!model) {
@@ -63,7 +65,7 @@ export async function getNextMessage(
     historyLen: messages.length,
     newLen: newMessage.length,
   });
-  return provider.getNextMessage(apiKey, model.id, messages, newMessage);
+  return provider.getNextMessage(apiKey, model.id, messages, newMessage, systemPrompt);
 }
 
 /**

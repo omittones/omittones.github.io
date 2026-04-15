@@ -1,6 +1,5 @@
 ---
 description: Always verify current date/time from external sources
-globs: **/*
 alwaysApply: true
 ---
 

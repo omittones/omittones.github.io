@@ -40,6 +40,8 @@ interface ChatViewProps {
   onSaveApiKey: (apiKey: string) => void;
   onLoadApiKeyFromDpaste: (urlOrCode: string) => void;
   onModelChange: (modelId: string) => void;
+  systemPrompt: string;
+  onSystemPromptSave: (text: string) => void;
   onClearChat: () => void;
   onOpenAbout: () => void;
   onReset: () => void;
@@ -68,6 +70,8 @@ export function ChatView({
   onSaveApiKey,
   onLoadApiKeyFromDpaste,
   onModelChange,
+  systemPrompt,
+  onSystemPromptSave,
   onClearChat,
   onOpenAbout,
   onReset: onLogout,
@@ -83,6 +87,17 @@ export function ChatView({
   var stickToBottomRef = useRef(true);
   var [dpasteCode, setDpasteCode] = useState<string>("");
   var [showModelSelector, setShowModelSelector] = useState<boolean>(false);
+  var [showSystemPromptPanel, setShowSystemPromptPanel] = useState<boolean>(false);
+  var [systemPromptDraft, setSystemPromptDraft] = useState<string>(systemPrompt);
+
+  useEffect(
+    function () {
+      if (showSystemPromptPanel) {
+        setSystemPromptDraft(systemPrompt);
+      }
+    },
+    [showSystemPromptPanel, systemPrompt],
+  );
 
   useEffect(function () {
     logger("chatView").debug("ChatView mounted");
@@ -343,6 +358,32 @@ export function ChatView({
     [onModelChange],
   );
 
+  var handleToggleSystemPromptPanel = useCallback(function () {
+    setShowSystemPromptPanel(function (open) {
+      var next = !open;
+      logger("chatView").debug("toggle system prompt panel", { open: next });
+      return next;
+    });
+  }, []);
+
+  var handleSystemPromptDraftInput = useCallback(function (e: Event) {
+    var target = e.target as HTMLTextAreaElement;
+    setSystemPromptDraft(target.value);
+  }, []);
+
+  var handleSystemPromptSaveClick = useCallback(
+    function () {
+      onSystemPromptSave(systemPromptDraft);
+      logger("chatView").debug("system prompt save clicked");
+    },
+    [onSystemPromptSave, systemPromptDraft],
+  );
+
+  var handleSystemPromptResetDefault = useCallback(function () {
+    onSystemPromptSave("");
+    logger("chatView").debug("system prompt reset to default");
+  }, [onSystemPromptSave]);
+
   return (
     <div className="chat-container">
       <div
@@ -392,9 +433,25 @@ export function ChatView({
               fontSize: "0.9rem",
               cursor: "pointer",
               minHeight: "44px",
+              marginRight: "0.5rem",
             }}
           >
             Model: {currentModel.name}
+          </button>
+          <button
+            type="button"
+            onClick={handleToggleSystemPromptPanel}
+            style={{
+              padding: "0.5rem 1rem",
+              border: "1px solid #000",
+              background: showSystemPromptPanel ? "#f0f0f0" : "#fff",
+              borderRadius: "4px",
+              fontSize: "0.9rem",
+              cursor: "pointer",
+              minHeight: "44px",
+            }}
+          >
+            Assistant instructions
           </button>
 
           {showModelSelector && (
@@ -434,6 +491,80 @@ export function ChatView({
                   </button>
                 );
               })}
+            </div>
+          )}
+
+          {showSystemPromptPanel && (
+            <div
+              style={{
+                marginTop: "0.75rem",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+                background: "#fff",
+                maxWidth: "36rem",
+                marginLeft: "auto",
+                marginRight: "auto",
+                padding: "0.75rem",
+                textAlign: "left",
+              }}
+            >
+              <label
+                htmlFor="system-prompt-textarea"
+                style={{ display: "block", fontSize: "0.85rem", marginBottom: "0.35rem", color: "#333" }}
+              >
+                System prompt (how the assistant should behave)
+              </label>
+              <textarea
+                id="system-prompt-textarea"
+                value={systemPromptDraft}
+                onInput={handleSystemPromptDraftInput}
+                rows={6}
+                style={{
+                  width: "100%",
+                  boxSizing: "border-box",
+                  fontSize: "0.9rem",
+                  padding: "0.5rem",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                  resize: "vertical",
+                  fontFamily: "inherit",
+                }}
+              />
+              <div style={{ marginTop: "0.5rem", display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                <button
+                  type="button"
+                  onClick={handleSystemPromptSaveClick}
+                  style={{
+                    padding: "0.45rem 0.85rem",
+                    border: "1px solid #000",
+                    background: "#fff",
+                    borderRadius: "4px",
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                    minHeight: "40px",
+                  }}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSystemPromptResetDefault}
+                  style={{
+                    padding: "0.45rem 0.85rem",
+                    border: "1px solid #888",
+                    background: "#fff",
+                    borderRadius: "4px",
+                    fontSize: "0.85rem",
+                    cursor: "pointer",
+                    minHeight: "40px",
+                  }}
+                >
+                  Reset to default
+                </button>
+              </div>
+              <p style={{ fontSize: "0.75rem", color: "#666", marginTop: "0.5rem", marginBottom: 0 }}>
+                Saved in this browser and applied to new replies. Does not change past messages.
+              </p>
             </div>
           )}
         </div>

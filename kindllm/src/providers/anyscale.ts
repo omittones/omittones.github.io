@@ -25,7 +25,6 @@ interface ChatCompletionResponse {
 // the hardcoded MODEL constant. This violates the LLMProvider contract — callers expect modelId
 // to be respected. Either use modelId or document why it's intentionally ignored.
 
-// TODO (DRY): The system prompt is duplicated from anthropic.ts. Extract into a shared constant.
 export const anyscaleProvider: LLMProvider = {
   id: "anyscale",
   name: "Anyscale",
@@ -35,14 +34,11 @@ export const anyscaleProvider: LLMProvider = {
     modelId: string,
     messages: Message[],
     newMessage: string,
+    systemPrompt: string,
   ): Promise<string> {
-    var systemPrompt = {
+    var systemMessage = {
       role: "system",
-      content:
-        "You are KindLLM2, a learning assistant for any topic. Help the user understand ideas, practice skills, and explore subjects at their level. " +
-        "Use clear explanations, concrete examples when they help, and step-by-step reasoning when appropriate. " +
-        "Ask a brief clarifying question if the learning goal or background is unclear. " +
-        "Be concise when a short answer is enough; go deeper when the user asks for detail. Stay accurate, neutral, and encouraging.",
+      content: systemPrompt,
     };
 
     var messageHistory = [];
@@ -54,7 +50,7 @@ export const anyscaleProvider: LLMProvider = {
       });
     }
 
-    var prompt = [systemPrompt, ...messageHistory, { role: "user", content: newMessage }];
+    var prompt = [systemMessage, ...messageHistory, { role: "user", content: newMessage }];
 
     var requestBody: ChatCompletionRequest = {
       model: MODEL,

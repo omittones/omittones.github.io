@@ -11,6 +11,8 @@ import {
   clearAll,
   getSelectedModel,
   setSelectedModel as persistSelectedModel,
+  getSystemPrompt,
+  setSystemPrompt as persistSystemPrompt,
 } from "./storage";
 import {
   initSupabase,
@@ -87,6 +89,7 @@ export function App() {
     }
     return DEFAULT_MODEL.id;
   });
+  var [systemPrompt, setSystemPromptState] = useState<string>(getSystemPrompt);
   var [diagnosticsDebugUi, setDiagnosticsDebugUi] = useState(function () {
     return isDiagnosticDebugEnabled();
   });
@@ -285,6 +288,7 @@ export function App() {
           selectedModel,
           messages,
           messageText,
+          systemPrompt,
           function (chunk) {
             setStreamingContent(function (prev) {
               return (prev ?? "") + chunk;
@@ -357,7 +361,7 @@ export function App() {
         logger("app").debug("sendMessage state", { loading: false });
       }
     },
-    [apiKey, messages, selectedModel],
+    [apiKey, messages, selectedModel, systemPrompt],
   );
 
   // Handle suggestion click
@@ -458,6 +462,13 @@ export function App() {
     setSelectedModelState(modelId);
   }, []);
 
+  var handleSystemPromptSave = useCallback(function (text: string) {
+    persistSystemPrompt(text);
+    var next = getSystemPrompt();
+    setSystemPromptState(next);
+    logger("app").info("system prompt saved", { len: next.length });
+  }, []);
+
   // Load API key from dpaste
   var handleLoadApiKeyFromDpaste = useCallback(async function (urlOrCode: string) {
     logger("app").debug("dpaste load start", { inputLen: urlOrCode.length });
@@ -538,6 +549,8 @@ export function App() {
         onSaveApiKey={handleSaveApiKey}
         onLoadApiKeyFromDpaste={handleLoadApiKeyFromDpaste}
         onModelChange={handleModelChange}
+        systemPrompt={systemPrompt}
+        onSystemPromptSave={handleSystemPromptSave}
         onClearChat={handleClearChat}
         onOpenAbout={handleOpenAbout}
         onReset={handleReset}

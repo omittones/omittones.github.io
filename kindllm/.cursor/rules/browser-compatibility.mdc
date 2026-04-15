@@ -1,7 +1,8 @@
 ---
 description: Browser compatibility standards - highest priority
-globs: **/*.{ts,tsx,js}
-alwaysApply: true
+globs:
+  - "src/**/*.ts"
+  - "src/**/*.tsx"
 ---
 
 # Browser Compatibility (Highest Priority)

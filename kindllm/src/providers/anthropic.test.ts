@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { anthropicProvider, getTypingAutocomplete } from "./anthropic";
 import { Message } from "./index";
+import { DEFAULT_MAIN_CHAT_SYSTEM_PROMPT } from "../prompts";
 
 describe("anthropic provider", function () {
   var originalFetch: typeof global.fetch;
@@ -45,6 +46,7 @@ describe("anthropic provider", function () {
         "claude-sonnet-4-6",
         messages,
         "Hi",
+        DEFAULT_MAIN_CHAT_SYSTEM_PROMPT,
       );
 
       expect(result).toBe("Hello from Claude");
@@ -84,7 +86,13 @@ describe("anthropic provider", function () {
         { role: "assistant", content: "Previous answer" },
       ];
 
-      await anthropicProvider.getNextMessage("key", "claude-sonnet-4-6", messages, "New question");
+      await anthropicProvider.getNextMessage(
+        "key",
+        "claude-sonnet-4-6",
+        messages,
+        "New question",
+        DEFAULT_MAIN_CHAT_SYSTEM_PROMPT,
+      );
 
       var fetchCall = (global.fetch as any).mock.calls[0];
       var body = JSON.parse(fetchCall[1].body);
@@ -109,7 +117,7 @@ describe("anthropic provider", function () {
       (global.fetch as any).mockResolvedValue(mockResponse);
 
       await expect(
-        anthropicProvider.getNextMessage("key", "claude-sonnet-4-6", [], "Hi"),
+        anthropicProvider.getNextMessage("key", "claude-sonnet-4-6", [], "Hi", DEFAULT_MAIN_CHAT_SYSTEM_PROMPT),
       ).rejects.toThrow("Invalid API key");
     });
 
@@ -125,7 +133,13 @@ describe("anthropic provider", function () {
       };
       (global.fetch as any).mockResolvedValue(mockResponse);
 
-      var result = await anthropicProvider.getNextMessage("key", "claude-sonnet-4-6", [], "Hi");
+      var result = await anthropicProvider.getNextMessage(
+        "key",
+        "claude-sonnet-4-6",
+        [],
+        "Hi",
+        DEFAULT_MAIN_CHAT_SYSTEM_PROMPT,
+      );
 
       expect(result).toBe("");
     });

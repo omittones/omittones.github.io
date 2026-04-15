@@ -29,6 +29,7 @@ export interface LLMProvider {
     modelId: string,
     messages: Message[],
     newMessage: string,
+    systemPrompt: string,
   ): Promise<string>;
   getSuggestions(apiKey: string, modelId: string, messages: Message[]): Promise<string[]>;
   streamNextMessage?(
@@ -36,6 +37,7 @@ export interface LLMProvider {
     modelId: string,
     messages: Message[],
     newMessage: string,
+    systemPrompt: string,
     onChunk: (chunk: string) => void,
   ): Promise<string>;
 }

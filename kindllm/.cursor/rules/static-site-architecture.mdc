@@ -1,7 +1,12 @@
 ---
-description: Static site architecture guidance
-globs: **/*.{ts,tsx,html,js}
-alwaysApply: true
+description: Static site architecture guidance (Vite static app, pnpm, deployment)
+globs:
+  - "vite.config.ts"
+  - "package.json"
+  - "index.html"
+  - "privacy.html"
+  - "src/**/*.ts"
+  - "src/**/*.tsx"
 ---
 
 # Static Site Architecture

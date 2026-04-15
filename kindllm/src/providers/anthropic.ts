@@ -10,15 +10,6 @@ var HAIKU_MODEL = "claude-haiku-4-5";
 const BASE_URL = "https://api.anthropic.com/v1";
 const API_VERSION = "2023-06-01";
 
-// TODO (DRY): This system prompt is nearly identical to the one in anyscale.ts.
-// Extract into a shared constant (e.g. `src/prompts.ts`) so changes stay in sync.
-/** Shared system instruction for main chat (streaming and non-streaming). */
-var MAIN_CHAT_SYSTEM_PROMPT =
-  "You are KindLLM2, a learning assistant for any topic. Help the user understand ideas, practice skills, and explore subjects at their level. " +
-  "Use clear explanations, concrete examples when they help, and step-by-step reasoning when appropriate. " +
-  "Ask a brief clarifying question if the learning goal or background is unclear. " +
-  "Be concise when a short answer is enough; go deeper when the user asks for detail. Stay accurate, neutral, and encouraging.";
-
 interface AnthropicMessage {
   role: "user" | "assistant";
   content: string;
@@ -93,9 +84,8 @@ export const anthropicProvider: LLMProvider = {
     modelId: string,
     messages: Message[],
     newMessage: string,
+    systemPrompt: string,
   ): Promise<string> {
-    var systemPrompt = MAIN_CHAT_SYSTEM_PROMPT;
-
     var messageHistory: AnthropicMessage[] = [];
     for (var i = 0; i < messages.length; i++) {
       var msg = messages[i];
@@ -168,6 +158,7 @@ export const anthropicProvider: LLMProvider = {
     modelId: string,
     messages: Message[],
     newMessage: string,
+    systemPrompt: string,
     onChunk: (chunk: string) => void,
   ): Promise<string> {
     var messageHistory: AnthropicMessage[] = [];
@@ -178,8 +169,6 @@ export const anthropicProvider: LLMProvider = {
       }
     }
     messageHistory.push({ role: "user", content: newMessage });
-
-    var systemPrompt = MAIN_CHAT_SYSTEM_PROMPT;
 
     logger("provider.anthropic").debug("stream request", {
       model: modelId,

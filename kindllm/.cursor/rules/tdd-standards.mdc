@@ -1,7 +1,9 @@
 ---
 description: Test-driven development — write tests before implementation (red-green-refactor)
-globs: src/**/*
-alwaysApply: true
+globs:
+  - "src/**/*.ts"
+  - "src/**/*.tsx"
+  - "vitest.config.ts"
 ---
 
 # Test-Driven Development (TDD)

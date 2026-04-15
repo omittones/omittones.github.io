@@ -1,7 +1,10 @@
 ---
 description: Kindle user experience guidelines - second priority
-globs: **/*.{ts,tsx,html,css}
-alwaysApply: true
+globs:
+  - "src/**/*.tsx"
+  - "src/**/*.css"
+  - "index.html"
+  - "privacy.html"
 ---
 
 # Kindle UX Guidelines (Second Priority)

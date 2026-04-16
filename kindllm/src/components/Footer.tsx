@@ -4,10 +4,10 @@ interface FooterProps {
   onClearChat: () => void | Promise<void>;
   onOpenAbout: () => void;
   onLogout: () => void | Promise<void>;
-  /** When set, show optional account line; Sync is hidden once user is signed in for sync (email set). */
+  /** When true, third footer slot is Anonymous (opens account modal); otherwise Logout. */
   supabaseConfigured?: boolean;
   syncUserEmail?: string | null;
-  onOpenSync?: () => void;
+  onOpenAnonymous?: () => void;
   onSignOutSync?: () => void | Promise<void>;
 }
 
@@ -17,9 +17,12 @@ export function Footer({
   onLogout,
   supabaseConfigured,
   syncUserEmail,
-  onOpenSync,
+  onOpenAnonymous,
   onSignOutSync,
 }: FooterProps) {
+  var showAnonymous =
+    Boolean(supabaseConfigured && onOpenAnonymous && !syncUserEmail);
+
   return (
     <div className="footer">
       <button
@@ -31,17 +34,6 @@ export function Footer({
       >
         About
       </button>
-      {supabaseConfigured && onOpenSync && !syncUserEmail && (
-        <button
-          className="footer-button"
-          onClick={function () {
-            logger("footer").debug("Sync click");
-            onOpenSync();
-          }}
-        >
-          Sync
-        </button>
-      )}
       <button
         className="footer-button"
         onClick={function () {
@@ -51,15 +43,31 @@ export function Footer({
       >
         Clear chat
       </button>
-      <button
-        className="footer-button"
-        onClick={function () {
-          logger("footer").debug("Logout click");
-          onLogout();
-        }}
-      >
-        Logout
-      </button>
+      {showAnonymous ? (
+        <button
+          type="button"
+          className="footer-button"
+          aria-label="Cloud account and session options"
+          onClick={function () {
+            logger("footer").debug("Anonymous click");
+            if (onOpenAnonymous) {
+              onOpenAnonymous();
+            }
+          }}
+        >
+          Anonymous
+        </button>
+      ) : (
+        <button
+          className="footer-button"
+          onClick={function () {
+            logger("footer").debug("Logout click");
+            onLogout();
+          }}
+        >
+          Logout
+        </button>
+      )}
       {supabaseConfigured && syncUserEmail && onSignOutSync && (
         <div
           style={{

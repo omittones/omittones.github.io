@@ -14,16 +14,19 @@ export interface SyncAccountModalProps {
   onClose: () => void;
   /** After successful verify or after cancel restore — reload messages from server. */
   onSessionResolved: () => void | Promise<void>;
+  /** Full app reset (same as footer Logout): API key, Supabase, landing. */
+  onResetSession: () => void | Promise<void>;
 }
 
 type MergeChoice = "yes" | "no" | null;
-type Step = "choose" | "email" | "otp";
+type Step = "choose" | "email" | "otp" | "confirmReset";
 
-// TODO: SyncAccountModal has significant inline styles (overlayStyle, panelStyle, per-element).
-// Move these to CSS classes in styles.css for consistency with the rest of the app.
-// TODO: Consider extracting the multi-step wizard state machine (choose → email → otp)
-// into a custom hook (e.g. useSyncWizard) to separate logic from presentation.
-export function SyncAccountModal({ open, onClose, onSessionResolved }: SyncAccountModalProps) {
+export function SyncAccountModal({
+  open,
+  onClose,
+  onSessionResolved,
+  onResetSession,
+}: SyncAccountModalProps) {
   var [step, setStep] = useState<Step>("choose");
   var [mergeChoice, setMergeChoice] = useState<MergeChoice>(null);
   var [email, setEmail] = useState("");
@@ -58,6 +61,11 @@ export function SyncAccountModal({ open, onClose, onSessionResolved }: SyncAccou
       if (busy) {
         return;
       }
+      if (step === "confirmReset") {
+        setStep("choose");
+        setError(null);
+        return;
+      }
       if (mergeNoOtpSent) {
         setBusy(true);
         var r = await restoreGuestAnonymousSession();
@@ -86,7 +94,7 @@ export function SyncAccountModal({ open, onClose, onSessionResolved }: SyncAccou
       }
       onClose();
     },
-    [busy, mergeNoOtpSent, mergeYesOtpSent, onClose, onSessionResolved],
+    [busy, mergeNoOtpSent, mergeYesOtpSent, onClose, onSessionResolved, step],
   );
 
   var handleChoose = useCallback(function (choice: MergeChoice) {
@@ -94,6 +102,32 @@ export function SyncAccountModal({ open, onClose, onSessionResolved }: SyncAccou
     setStep("email");
     setError(null);
   }, []);
+
+  var handleResetSessionClick = useCallback(function () {
+    setError(null);
+    setStep("confirmReset");
+  }, []);
+
+  var handleConfirmReset = useCallback(
+    async function () {
+      if (busy) {
+        return;
+      }
+      setBusy(true);
+      setError(null);
+      try {
+        await onResetSession();
+        resetForm();
+        onClose();
+      } catch (e) {
+        var msg = e instanceof Error ? e.message : String(e);
+        setError(msg);
+        logger("syncModal").error("onResetSession failed", { message: msg });
+      }
+      setBusy(false);
+    },
+    [busy, onResetSession, onClose, resetForm],
+  );
 
   var handleSendCode = useCallback(
     async function (e: Event) {
@@ -196,12 +230,14 @@ export function SyncAccountModal({ open, onClose, onSessionResolved }: SyncAccou
     >
       <div style={panelStyle}>
         <h2 id="sync-account-title" style={{ margin: "0 0 0.75rem 0", fontSize: "1.1rem" }}>
-          Sync across devices
+          {step === "confirmReset" ? "Reset session" : "Cloud account"}
         </h2>
-        <p style={{ margin: "0 0 1rem 0", fontSize: "0.85rem", color: "#444" }}>
-          Use a one-time code from your email. On Kindle, open the message on another device and type
-          the code here.
-        </p>
+        {step !== "confirmReset" && (
+          <p style={{ margin: "0 0 1rem 0", fontSize: "0.85rem", color: "#444" }}>
+            Use a one-time code from your email. On Kindle, open the message on another device and
+            type the code here.
+          </p>
+        )}
 
         {error && (
           <p role="alert" style={{ color: "#a60", fontSize: "0.85rem", marginBottom: "0.75rem" }}>
@@ -212,7 +248,8 @@ export function SyncAccountModal({ open, onClose, onSessionResolved }: SyncAccou
         {step === "choose" && (
           <div>
             <p style={{ fontSize: "0.9rem", marginBottom: "0.75rem" }}>
-              This device has local chat history. How should we connect it to your account?
+              This device has local chat history. Choose how to connect to your account, or reset
+              this browser session.
             </p>
             <button
               type="button"
@@ -223,21 +260,51 @@ export function SyncAccountModal({ open, onClose, onSessionResolved }: SyncAccou
                 handleChoose("yes");
               }}
             >
-              Keep this device&apos;s chat on my account
+              Login and push to Supabase
+            </button>
+            <button
+              type="button"
+              className="api-key-button"
+              style={{ width: "100%", marginBottom: "0.5rem", minHeight: "44px" }}
+              disabled={busy}
+              onClick={function () {
+                handleChoose("no");
+              }}
+            >
+              Login and replace current convo
             </button>
             <button
               type="button"
               className="api-key-button"
               style={{ width: "100%", marginBottom: "0.75rem", minHeight: "44px" }}
               disabled={busy}
-              onClick={function () {
-                handleChoose("no");
-              }}
+              onClick={handleResetSessionClick}
             >
-              Use only my saved account (discard this device&apos;s chat)
+              Reset session
             </button>
             <button type="button" className="footer-button" disabled={busy} onClick={handleClose}>
               Cancel
+            </button>
+          </div>
+        )}
+
+        {step === "confirmReset" && (
+          <div>
+            <p style={{ fontSize: "0.85rem", marginBottom: "0.75rem", color: "#444" }}>
+              This removes your API key from this browser, signs out of the app, and returns to the
+              start screen. You cannot undo this here.
+            </p>
+            <button
+              type="button"
+              className="api-key-button"
+              style={{ width: "100%", marginBottom: "0.5rem", minHeight: "44px" }}
+              disabled={busy}
+              onClick={handleConfirmReset}
+            >
+              {busy ? "Resetting…" : "Yes, reset everything"}
+            </button>
+            <button type="button" className="footer-button" disabled={busy} onClick={handleClose}>
+              Go back
             </button>
           </div>
         )}

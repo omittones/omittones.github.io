@@ -21,7 +21,7 @@ var apiKeyFieldDefaultValue =
 // Extract `<ApiKeySetup>` into its own component with only the props it needs
 // (onSaveApiKey, onLoadApiKeyFromDpaste, dpasteError, isLoadingDpaste, debugMode, etc.).
 // The remaining chat props could be further grouped (e.g. pass a `sync` object for
-// supabaseConfigured + syncUserEmail + onOpenSync + onSignOutSync).
+// supabaseConfigured + syncUserEmail + onOpenAnonymous + onSignOutSync).
 interface ChatViewProps {
   messages: MessageType[];
   messagesLoading?: boolean;
@@ -44,11 +44,12 @@ interface ChatViewProps {
   onSystemPromptSave: (text: string) => void;
   onClearChat: () => void;
   onOpenAbout: () => void;
-  onReset: () => void;
+  /** Opens sign-out options (full vs detach, keep API key). */
+  onOpenLogoutModal: () => void;
   onRetrySuggestions: () => void;
   supabaseConfigured?: boolean;
   syncUserEmail?: string | null;
-  onOpenSync?: () => void;
+  onOpenAnonymous?: () => void;
   onSignOutSync?: () => void | Promise<void>;
 }
 
@@ -74,11 +75,11 @@ export function ChatView({
   onSystemPromptSave,
   onClearChat,
   onOpenAbout,
-  onReset: onLogout,
+  onOpenLogoutModal,
   onRetrySuggestions,
   supabaseConfigured,
   syncUserEmail,
-  onOpenSync,
+  onOpenAnonymous,
   onSignOutSync,
 }: ChatViewProps) {
   var messagesEndRef = useRef<HTMLDivElement>(null);
@@ -611,10 +612,10 @@ export function ChatView({
       <Footer
         onClearChat={onClearChat}
         onOpenAbout={onOpenAbout}
-        onLogout={onLogout}
+        onLogout={onOpenLogoutModal}
         supabaseConfigured={supabaseConfigured}
         syncUserEmail={syncUserEmail}
-        onOpenSync={onOpenSync}
+        onOpenAnonymous={onOpenAnonymous}
         onSignOutSync={onSignOutSync}
       />
     </div>

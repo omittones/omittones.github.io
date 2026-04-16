@@ -27,6 +27,7 @@ import {
 } from "./supabase";
 import { signOutSyncRestoreGuest } from "./auth-sync";
 import { SyncAccountModal } from "./components/SyncAccountModal";
+import { LogoutOptionsModal } from "./components/LogoutOptionsModal";
 import { streamNextMessage, getSuggestions, DEFAULT_MODEL, getModelById } from "./llm";
 import { fetchApiKeyFromDpaste } from "./dpaste";
 import { logger, isDiagnosticDebugEnabled } from "./diagnostic-log";
@@ -94,6 +95,7 @@ export function App() {
     return isDiagnosticDebugEnabled();
   });
   var [syncWizardOpen, setSyncWizardOpen] = useState(false);
+  var [logoutOptionsOpen, setLogoutOptionsOpen] = useState(false);
   var [syncUserEmail, setSyncUserEmail] = useState<string | null>(null);
 
   var refreshConversationFromServer = useCallback(async function () {
@@ -413,8 +415,26 @@ export function App() {
   // If a new state variable is added and forgotten here, stale state leaks across sessions.
   // Custom hooks (useChat, useSyncState, etc.) could each expose their own reset(),
   // making it impossible to miss one.
+  var handleLogoutDetachKeepKey = useCallback(async function () {
+    logger("app").info("logout detach keep key");
+    setLogoutOptionsOpen(false);
+    setSyncWizardOpen(false);
+    // Clear only local chat UI — do not delete messages in Supabase so the same account can
+    // reload cloud history after signing in again.
+    setMessagesState([]);
+    setSuggestions([]);
+    await signOutRemote();
+    setSyncUserEmail(null);
+    setConversationSyncError(null);
+    // Re-establish anonymous session and reload from server (empty until user syncs again).
+    if (isSupabaseConfigured()) {
+      await refreshConversationFromServer();
+    }
+  }, [refreshConversationFromServer]);
+
   var handleReset = useCallback(async function () {
     logger("app").info("logout / reset all");
+    setLogoutOptionsOpen(false);
     await signOutRemote();
     clearAll();
     setApiKeyState("");
@@ -553,11 +573,13 @@ export function App() {
         onSystemPromptSave={handleSystemPromptSave}
         onClearChat={handleClearChat}
         onOpenAbout={handleOpenAbout}
-        onReset={handleReset}
+        onOpenLogoutModal={function () {
+          setLogoutOptionsOpen(true);
+        }}
         onRetrySuggestions={handleRetrySuggestions}
         supabaseConfigured={isSupabaseConfigured() && Boolean(apiKey)}
         syncUserEmail={syncUserEmail}
-        onOpenSync={function () {
+        onOpenAnonymous={function () {
           setSyncWizardOpen(true);
         }}
         onSignOutSync={handleSignOutSync}
@@ -568,6 +590,15 @@ export function App() {
           setSyncWizardOpen(false);
         }}
         onSessionResolved={refreshConversationFromServer}
+        onResetSession={handleReset}
+      />
+      <LogoutOptionsModal
+        open={logoutOptionsOpen}
+        onClose={function () {
+          setLogoutOptionsOpen(false);
+        }}
+        onFullSignOut={handleReset}
+        onDetachKeepKey={handleLogoutDetachKeepKey}
       />
     </Fragment>
   );

@@ -1,0 +1,676 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Barlow+Condensed:wght@300;400;500;600&family=Barlow:wght@300;400;500&display=swap');
+
+/* ─── tokens ─── */
+/* Tuned for Kindle Colorsoft: flat colors, no shadows/gradients,
+   boosted saturation to compensate for e-ink desaturation            */
+.sheet {
+  --bg:     #f7f3eb;
+  --surf:   #ffffff;
+  --surf2:  #ede8df;
+  --bdr:    #c4b89e;
+  --bdr2:   #8a7a66;
+  --accent: #a04f0e;
+  --t1:     #1a1714;
+  --t2:     #5a5048;
+  --t3:     #9a8e82;
+  --hp:     #bf2a08;
+  --tmp:    #1260a8;
+  --fp:     #4a2eb0;
+  --hd:     #0a7a4a;
+  --r:      10px;
+  --rl:     14px;
+}
+
+/* ─── base ─── */
+.sheet {
+  background: var(--bg);
+  color: var(--t1);
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 1.25rem;
+  box-sizing: border-box;
+}
+
+/* ─── header ─── */
+.s-header {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--bdr);
+  position: relative;
+}
+.s-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 0;
+  width: 48px; height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+.s-name {
+  font-family: 'Cinzel', serif;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--t1);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+.s-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.s-class {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.s-sep { color: var(--t3); }
+.s-sub { font-size: 12px; color: var(--t2); }
+
+/* ─── section label ─── */
+.lbl {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 10px;
+  opacity: 0.85;
+}
+
+/* ─── divider ─── */
+.div {
+  border: none;
+  border-top: 1px solid var(--bdr);
+  margin: 1.5rem 0;
+}
+
+/* ─── attributes ─── */
+.attr-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+.attr-card {
+  background: var(--surf);
+  border: 1px solid var(--bdr);
+  border-radius: var(--r);
+  padding: 10px 4px 8px;
+  text-align: center;
+}
+.attr-card:hover { border-color: var(--bdr2); }
+.attr-lbl {
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--t3);
+  margin-bottom: 5px;
+}
+.attr-mod {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--t1);
+}
+.attr-score {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  color: var(--t3);
+  margin-top: 4px;
+}
+
+/* ─── quick stats ─── */
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 7px;
+}
+.stat-card {
+  background: var(--surf);
+  border: 1px solid var(--bdr);
+  border-radius: var(--r);
+  padding: 11px 12px;
+}
+.stat-card:hover { border-color: var(--bdr2); }
+.stat-lbl {
+  font-size: 10px;
+  color: var(--t2);
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stat-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--t1);
+}
+.stat-sub {
+  font-size: 10px;
+  color: var(--t3);
+  margin-top: 2px;
+}
+
+/* ─── counters ─── */
+.counters-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.counter {
+  background: var(--surf);
+  border: 1px solid var(--bdr);
+  border-radius: var(--rl);
+  padding: 14px;
+}
+.counter-hp { grid-column: 1 / -1; }
+.c-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.c-title {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--t2);
+}
+.c-sub { font-size: 10px; color: var(--t3); }
+
+.pips { display: flex; flex-wrap: wrap; gap: 5px; }
+.pip {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--bdr);
+  background: var(--surf2);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.pip.hp-filled    { background: var(--hp);  border-color: var(--hp);  }
+.pip.tmp-filled   { background: var(--tmp); border-color: var(--tmp); }
+.pip.focus-filled { background: var(--fp);  border-color: var(--fp);  }
+.pip.hd-filled    { background: var(--hd);  border-color: var(--hd);  }
+
+.c-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  color: var(--t3);
+  margin-top: 8px;
+  text-align: right;
+}
+.pip-legend { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+.pip-legend-item { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--t3); }
+.pip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+.adr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--bdr);
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.adr-left { display: flex; flex-direction: column; gap: 3px; }
+.adr-label {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--t2);
+}
+.adr-uses { display: flex; gap: 5px; align-items: center; }
+.adr-pip {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid var(--bdr);
+  background: var(--surf2);
+  flex-shrink: 0;
+}
+.adr-pip.adr-avail { background: var(--tmp); border-color: var(--tmp); }
+.adr-uses-label { font-size: 10px; color: var(--t3); margin-left: 2px; }
+.adr-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1.5px solid var(--tmp);
+  background: transparent;
+  color: var(--tmp);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.adr-btn:disabled {
+  border-color: var(--bdr);
+  color: var(--t3);
+  cursor: default;
+}
+.adr-rest-btn {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ─── skills ─── */
+.skills-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.skill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surf);
+  border: 1px solid var(--bdr);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 13px;
+}
+.skill-badge:hover { border-color: var(--bdr2); }
+.skill-bonus {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--t1);
+}
+.skill-src { font-size: 10px; color: var(--t3); }
+
+/* ─── feat cards ─── */
+.feat-card {
+  background: var(--surf);
+  border: 1px solid var(--bdr);
+  border-radius: var(--r);
+  padding: 12px 14px;
+  margin-bottom: 6px;
+}
+.feat-card:hover { border-color: var(--bdr2); }
+.feat-title {
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  color: var(--t1);
+}
+.feat-body { font-size: 12px; color: var(--t2); line-height: 1.65; }
+
+/* ─── badges ─── */
+.badge {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+.badge-rest { background: rgba(196,136,42,0.14); color: #c98b2e; border: 1px solid rgba(196,136,42,0.22); }
+.badge-free { background: rgba(45,184,138,0.12); color: #2db88a; border: 1px solid rgba(45,184,138,0.2);  }
+.badge-fp   { background: rgba(155,141,224,0.12); color: #9b8de0; border: 1px solid rgba(155,141,224,0.2); }
+
+/* ─── rules ─── */
+.rule-list { display: flex; flex-direction: column; gap: 8px; }
+.rule-item {
+  font-size: 12px;
+  line-height: 1.65;
+  padding-left: 16px;
+  position: relative;
+  color: var(--t2);
+}
+.rule-item::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-size: 11px;
+  opacity: 0.7;
+}
+.rule-item strong { color: var(--t1); font-weight: 500; }
+
+/* ─── combat turns ─── */
+.turn-grid { display: flex; flex-direction: column; }
+.turn {
+  display: grid;
+  grid-template-columns: 108px 1fr;
+  gap: 10px;
+  font-size: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--bdr);
+  align-items: baseline;
+}
+.turn:last-child { border-bottom: none; }
+.turn-name { font-weight: 500; color: var(--t1); }
+.turn-steps { color: var(--t2); line-height: 1.55; }
+
+/* ─── traits ─── */
+.trait-list { display: flex; flex-direction: column; }
+.trait-item {
+  display: grid;
+  grid-template-columns: 162px 1fr;
+  gap: 10px;
+  font-size: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--bdr);
+  align-items: baseline;
+}
+.trait-item:last-child { border-bottom: none; }
+.trait-name { color: var(--t2); }
+.trait-val { color: var(--t1); line-height: 1.5; }
+
+/* ─── equipment ─── */
+.equip { font-size: 12px; color: var(--t2); line-height: 1.9; }
+.equip strong { color: var(--t1); font-weight: 500; }
+
+/* ─── footer note ─── */
+.sheet-note { font-size: 11px; color: var(--t3); margin: 0; font-style: italic; }
+
+/* ─── mobile ─── */
+@media (max-width: 540px) {
+  .sheet { padding: 1rem; }
+  .attr-grid { grid-template-columns: repeat(3, 1fr); }
+  .turn { grid-template-columns: 88px 1fr; }
+  .trait-item { grid-template-columns: 1fr; gap: 2px; }
+  .trait-name { font-size: 10px; color: var(--t3); }
+}
+</style>
+
+<div class="sheet">
+
+  <!-- header -->
+  <div class="s-header">
+    <div class="s-name">Orc Monk: Stick</div>
+    <div class="s-meta">
+      <span class="s-class">Monk</span>
+      <span class="s-sep">·</span>
+      <span class="s-sub">Level 2 · PHB 2024</span>
+    </div>
+  </div>
+
+  <!-- attributes -->
+  <p class="lbl">Attributes</p>
+  <div class="attr-grid">
+    <div class="attr-card"><div class="attr-lbl">STR</div><div class="attr-mod">−2</div><div class="attr-score">6</div></div>
+    <div class="attr-card"><div class="attr-lbl">DEX</div><div class="attr-mod">+3</div><div class="attr-score">17</div></div>
+    <div class="attr-card"><div class="attr-lbl">CON</div><div class="attr-mod">+3</div><div class="attr-score">16</div></div>
+    <div class="attr-card"><div class="attr-lbl">INT</div><div class="attr-mod">+0</div><div class="attr-score">11</div></div>
+    <div class="attr-card"><div class="attr-lbl">WIS</div><div class="attr-mod">+4</div><div class="attr-score">19</div></div>
+    <div class="attr-card"><div class="attr-lbl">CHA</div><div class="attr-mod">−2</div><div class="attr-score">6</div></div>
+  </div>
+
+  <hr class="div">
+
+  <!-- quick stats -->
+  <p class="lbl">Quick Stats</p>
+  <div class="quick-grid">
+    <div class="stat-card"><div class="stat-lbl">Attack roll</div><div class="stat-val">d20 +5</div><div class="stat-sub">DEX +3 · Prof +2</div></div>
+    <div class="stat-card"><div class="stat-lbl">Armor class</div><div class="stat-val">17</div><div class="stat-sub">10 + DEX 3 + WIS 4</div></div>
+    <div class="stat-card"><div class="stat-lbl">Damage</div><div class="stat-val">1d6 +3</div><div class="stat-sub">4–9 per hit</div></div>
+    <div class="stat-card"><div class="stat-lbl">Speed</div><div class="stat-val">40 ft</div><div class="stat-sub">30 base + 10 unarmored</div></div>
+    <div class="stat-card"><div class="stat-lbl">Passive perception</div><div class="stat-val">14</div><div class="stat-sub">10 + WIS 4</div></div>
+    <div class="stat-card"><div class="stat-lbl">Saving throws</div><div class="stat-val" style="font-size:16px;padding-top:3px;">STR · DEX</div><div class="stat-sub">proficient</div></div>
+  </div>
+
+  <hr class="div">
+
+  <!-- counters -->
+  <p class="lbl">Counters</p>
+  <div class="counters-grid">
+
+    <div class="counter counter-hp">
+      <div class="c-header">
+        <span class="c-title">Hit points</span>
+        <span class="c-sub" id="hp-label">17 / 17</span>
+      </div>
+      <div class="pips" id="hp-pips"></div>
+      <div class="pip-legend">
+        <div class="pip-legend-item"><div class="pip-dot" style="background:var(--hp)"></div>normal</div>
+        <div class="pip-legend-item"><div class="pip-dot" style="background:var(--tmp)"></div>temp</div>
+        <div class="pip-legend-item"><div class="pip-dot" style="background:var(--surf2);border:1.5px solid var(--bdr)"></div>lost</div>
+      </div>
+      <div class="adr-row">
+        <div class="adr-left">
+          <span class="adr-label">Adrenaline Rush</span>
+          <div class="adr-uses" id="adr-uses">
+            <!-- rendered by JS -->
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button class="adr-btn" id="adr-btn">Activate</button>
+          <button class="adr-btn adr-rest-btn" id="adr-rest-btn">Short Rest</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="counter">
+      <div class="c-header">
+        <span class="c-title">Focus points</span>
+        <span class="c-sub">Short / Long Rest</span>
+      </div>
+      <div class="pips" id="focus-pips"></div>
+      <div class="c-val" id="focus-val">2 / 2</div>
+    </div>
+
+    <div class="counter">
+      <div class="c-header">
+        <span class="c-title">Hit dice</span>
+        <span class="c-sub">d8 · Long Rest</span>
+      </div>
+      <div class="pips" id="hd-pips"></div>
+      <div class="c-val" id="hd-val">2 / 2</div>
+    </div>
+
+  </div>
+
+  <hr class="div">
+
+  <!-- skills -->
+  <p class="lbl">Skills</p>
+  <div class="skills-row">
+    <div class="skill-badge"><span class="skill-bonus">+5</span> Acrobatics <span class="skill-src">DEX · Monk</span></div>
+    <div class="skill-badge"><span class="skill-bonus">+6</span> Insight <span class="skill-src">WIS · Monk</span></div>
+    <div class="skill-badge"><span class="skill-bonus">+6</span> Medicine <span class="skill-src">WIS · Hermit</span></div>
+    <div class="skill-badge"><span class="skill-bonus">+2</span> Religion <span class="skill-src">INT · Hermit</span></div>
+  </div>
+
+  <hr class="div">
+
+  <!-- features -->
+  <p class="lbl">Usable traits & feats</p>
+
+  <div class="feat-card">
+    <div class="feat-title"><i class="ti ti-bolt" aria-hidden="true"></i> Flurry of blows <span class="badge badge-fp">1 FP</span></div>
+    <div class="feat-body">After the Attack action: two Unarmed Strikes as a Bonus Action. Total 3 hits in one turn.</div>
+  </div>
+  <div class="feat-card">
+    <div class="feat-title"><i class="ti ti-shield" aria-hidden="true"></i> Patient defense <span class="badge badge-free">free</span> <span class="badge badge-fp">or 1 FP</span></div>
+    <div class="feat-body">Free: Disengage as Bonus Action. Spend 1 FP: Disengage + Dodge as Bonus Action.</div>
+  </div>
+  <div class="feat-card">
+    <div class="feat-title"><i class="ti ti-run" aria-hidden="true"></i> Step of the wind <span class="badge badge-free">free</span> <span class="badge badge-fp">or 1 FP</span></div>
+    <div class="feat-body">Free: Dash as Bonus Action. Spend 1 FP: Disengage + Dash + jump distance doubled.</div>
+  </div>
+  <div class="feat-card">
+    <div class="feat-title"><i class="ti ti-flame" aria-hidden="true"></i> Adrenaline rush <span class="badge badge-rest">Short Rest · 2×</span></div>
+    <div class="feat-body">Dash as Bonus Action + gain 2 Temp HP (blue pips). Use before Step of the Wind to save FP.</div>
+  </div>
+  <div class="feat-card">
+    <div class="feat-title"><i class="ti ti-heart-plus" aria-hidden="true"></i> Uncanny metabolism <span class="badge badge-rest">Long Rest · 1×</span></div>
+    <div class="feat-body">On Initiative roll: regain all FP + roll 1d6 + 2 HP.</div>
+  </div>
+  <div class="feat-card">
+    <div class="feat-title"><i class="ti ti-skull" aria-hidden="true"></i> Relentless endurance <span class="badge badge-rest">Long Rest · 1×</span></div>
+    <div class="feat-body">When you would drop to 0 HP, drop to 1 HP instead.</div>
+  </div>
+  <div class="feat-card">
+    <div class="feat-title"><i class="ti ti-first-aid-kit" aria-hidden="true"></i> Healer feat <span class="badge badge-rest">Long Rest · 5×</span></div>
+    <div class="feat-body">Action + Herbalism Kit: restore 1d6 + 4 + target's max Hit Dice in HP. Stabilize a 0 HP creature with 1 use, no Medicine check needed.</div>
+  </div>
+
+  <hr class="div">
+
+  <!-- key rules -->
+  <p class="lbl">Key rules</p>
+  <div class="rule-list">
+    <div class="rule-item"><strong>No armor, ever.</strong> Wearing armor disables Unarmored Defense, Martial Arts die, and Dexterous Attacks simultaneously.</div>
+    <div class="rule-item"><strong>Adrenaline Rush before Step of the Wind.</strong> Both Dash as Bonus Action — but Rush recharges on Short Rest and adds Temp HP. Save FP for when you also need Disengage.</div>
+    <div class="rule-item"><strong>Short Rest often.</strong> FP recharge on Short Rest. Uncanny Metabolism is backup when you can't rest.</div>
+    <div class="rule-item"><strong>Monk weapons only.</strong> Simple melee or Light martial only. Two-handed and Heavy weapons break Martial Arts.</div>
+    <div class="rule-item"><strong>Bonus Unarmed Strike is always free.</strong> After the Attack action (with Unarmed Strike or Monk weapon), one Unarmed Strike as Bonus Action costs nothing.</div>
+  </div>
+
+  <hr class="div">
+
+  <!-- combat turns -->
+  <p class="lbl">Combat turn templates</p>
+  <div class="turn-grid">
+    <div class="turn"><span class="turn-name">Standard</span><span class="turn-steps">Move → Attack → free Unarmed Strike · 2 hits, 0 resources</span></div>
+    <div class="turn"><span class="turn-name">Aggressive</span><span class="turn-steps">Move → Attack → Flurry of Blows · 3 hits · 1 FP</span></div>
+    <div class="turn"><span class="turn-name">Slippery</span><span class="turn-steps">Attack → Patient Defense (BA) · Disengage → no OA</span></div>
+    <div class="turn"><span class="turn-name">Repositioning</span><span class="turn-steps">Attack → Adrenaline Rush Dash · saves FP, grants Temp HP</span></div>
+    <div class="turn"><span class="turn-name">Defensive</span><span class="turn-steps">Attack → Patient Defense · Disengage + Dodge · 1 FP</span></div>
+  </div>
+
+  <hr class="div">
+
+  <!-- traits -->
+  <p class="lbl">Traits reference</p>
+  <div class="trait-list">
+    <div class="trait-item"><span class="trait-name">Darkvision</span><span class="trait-val">120 ft</span></div>
+    <div class="trait-item"><span class="trait-name">Martial Arts die</span><span class="trait-val">1d6 → 1d8 (lvl 5) → 1d10 (lvl 10) → 1d12 (lvl 17)</span></div>
+    <div class="trait-item"><span class="trait-name">Unarmored Movement</span><span class="trait-val">+10 ft now → +15 (lvl 6) → +20 (lvl 10) → +25 (lvl 14) → +30 (lvl 18)</span></div>
+    <div class="trait-item"><span class="trait-name">Focus Points</span><span class="trait-val">= Monk level · Short or Long Rest</span></div>
+    <div class="trait-item"><span class="trait-name">Dexterous Attacks</span><span class="trait-val">Use DEX for attack/damage rolls and Grapple/Shove DCs</span></div>
+    <div class="trait-item"><span class="trait-name">Weapon proficiency</span><span class="trait-val">Simple weapons · Light martial melee</span></div>
+    <div class="trait-item"><span class="trait-name">Tool proficiency</span><span class="trait-val">Herbalism Kit (Hermit) + one Artisan's Tool or Instrument (Monk)</span></div>
+    <div class="trait-item"><span class="trait-name">Hermit origin</span><span class="trait-val">CON / WIS / CHA +1 each · Healer feat</span></div>
+  </div>
+
+  <hr class="div">
+
+  <!-- equipment -->
+  <p class="lbl">Starting equipment</p>
+  <div class="equip">
+    <strong>Monk (A):</strong> Spear · 5 Daggers · Artisan's Tools or Instrument · Explorer's Pack · 11 GP<br>
+    <strong>Hermit (A):</strong> Quarterstaff · Herbalism Kit · Bedroll · Book (philosophy) · Lamp · Oil ×3 · Traveler's Clothes · 16 GP
+  </div>
+
+  <hr class="div">
+  <p class="sheet-note">Level 3: Deflect Attacks + Monk subclass choice.</p>
+
+</div>
+
+<script>
+const MAX_HP = 17;
+const TEMP_MAX = 2;
+const ADR_MAX = 2;
+let hpLost = 0;
+let tempActive = 0;
+let adrUsed = 0;
+
+function renderHP() {
+  const container = document.getElementById('hp-pips');
+  const label = document.getElementById('hp-label');
+  container.innerHTML = '';
+  const total = MAX_HP + tempActive;
+  const currentHP = MAX_HP - hpLost;
+
+  for (let i = 0; i < total; i++) {
+    const p = document.createElement('div');
+    const isTemp = i >= MAX_HP;
+    const isAlive = i < (currentHP + tempActive);
+
+    if (isTemp) {
+      p.className = 'pip' + (isAlive ? ' tmp-filled' : '');
+    } else {
+      p.className = 'pip' + (isAlive ? ' hp-filled' : '');
+    }
+
+    p.setAttribute('role', 'button');
+    p.setAttribute('aria-label', 'toggle pip ' + (i + 1));
+
+    p.addEventListener('click', () => {
+      if (isTemp) {
+        if (isAlive) { tempActive = Math.max(0, tempActive - 1); }
+        else { tempActive = Math.min(TEMP_MAX, tempActive + 1); }
+      } else {
+        if (isAlive) { hpLost = MAX_HP - i; }
+        else { hpLost = Math.max(0, MAX_HP - i - 1); }
+      }
+      renderHP();
+    });
+
+    container.appendChild(p);
+  }
+
+  const dispHP = Math.max(0, MAX_HP - hpLost);
+  label.textContent = dispHP + ' / ' + MAX_HP + (tempActive > 0 ? ' · Temp: ' + tempActive : '');
+
+  // Adrenaline Rush uses
+  const adrContainer = document.getElementById('adr-uses');
+  const adrBtn = document.getElementById('adr-btn');
+  adrContainer.innerHTML = '';
+  const avail = ADR_MAX - adrUsed;
+  for (let i = 0; i < ADR_MAX; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'adr-pip' + (i < avail ? ' adr-avail' : '');
+    adrContainer.appendChild(dot);
+  }
+  const usesLabel = document.createElement('span');
+  usesLabel.className = 'adr-uses-label';
+  usesLabel.textContent = avail + ' / ' + ADR_MAX;
+  adrContainer.appendChild(usesLabel);
+
+  adrBtn.disabled = avail === 0;
+  adrBtn.textContent = avail === 0 ? 'No uses left' : 'Activate';
+}
+
+document.getElementById('adr-btn').addEventListener('click', () => {
+  if (adrUsed >= ADR_MAX) return;
+  adrUsed++;
+  tempActive = TEMP_MAX;
+  renderHP();
+});
+
+document.getElementById('adr-rest-btn').addEventListener('click', () => {
+  adrUsed = 0;
+  tempActive = 0;
+  renderHP();
+});
+
+function makeSimpleCounter(pipId, valId, max, filledClass) {
+  const container = document.getElementById(pipId);
+  const valEl = document.getElementById(valId);
+  let filled = max;
+  function render() {
+    container.innerHTML = '';
+    for (let i = 0; i < max; i++) {
+      const p = document.createElement('div');
+      p.className = 'pip' + (i < filled ? ' ' + filledClass : '');
+      p.setAttribute('role', 'button');
+      p.setAttribute('aria-label', 'toggle pip ' + (i+1));
+      p.addEventListener('click', () => {
+        filled = (i < filled) ? i : i + 1;
+        render();
+      });
+      container.appendChild(p);
+    }
+    valEl.textContent = filled + ' / ' + max;
+  }
+  render();
+}
+
+renderHP();
+makeSimpleCounter('focus-pips', 'focus-val', 2, 'focus-filled');
+makeSimpleCounter('hd-pips', 'hd-val', 2, 'hd-filled');
+</script>

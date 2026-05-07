@@ -77,12 +77,23 @@
 /* ─── section label ─── */
 .lbl {
   font-family: 'Cinzel', serif;
-  font-size: 9px;
-  letter-spacing: 0.15em;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--accent);
   margin: 0 0 10px;
-  opacity: 0.85;
+  opacity: 0.98;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lbl::after {
+  content: "";
+  height: 1px;
+  flex: 1 1 auto;
+  background: linear-gradient(to right, var(--bdr2), transparent 85%);
+  opacity: 0.75;
 }
 
 /* ─── divider ─── */
@@ -98,12 +109,19 @@
   grid-template-columns: repeat(6, 1fr);
   gap: 6px;
 }
+.attr-grid.attr-grid--sidebar {
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
 .attr-card {
   background: var(--surf);
   border: 1px solid var(--bdr);
   border-radius: var(--r);
   padding: 10px 4px 8px;
   text-align: center;
+}
+.attr-grid.attr-grid--sidebar .attr-card {
+  padding: 8px 6px 7px;
 }
 .attr-card:hover { border-color: var(--bdr2); }
 .attr-lbl {
@@ -119,13 +137,20 @@
   font-weight: 500;
   line-height: 1;
   color: var(--t1);
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
 }
-.attr-score {
+.attr-grid.attr-grid--sidebar .attr-mod { font-size: 18px; }
+.attr-score-inline {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 11px;
+  font-weight: 400;
   color: var(--t3);
-  margin-top: 4px;
+  letter-spacing: 0.01em;
 }
+.attr-grid.attr-grid--sidebar .attr-score-inline { font-size: 10px; }
 
 /* ─── quick stats ─── */
 .quick-grid {
@@ -375,13 +400,135 @@
 /* ─── footer note ─── */
 .sheet-note { font-size: 11px; color: var(--t3); margin: 0; font-style: italic; }
 
+/* ─── page layout ─── */
+.layout {
+  display: grid;
+  grid-template-columns: 134px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.sidebar { position: relative; }
+.sidebar .lbl { margin-bottom: 8px; }
+.main { min-width: 0; }
+
 /* ─── mobile ─── */
 @media (max-width: 540px) {
   .sheet { padding: 1rem; }
-  .attr-grid { grid-template-columns: repeat(3, 1fr); }
+  .layout { grid-template-columns: 1fr; gap: 10px; }
+  .attr-grid,
+  .attr-grid.attr-grid--sidebar { grid-template-columns: repeat(3, 1fr); }
+  .attr-grid.attr-grid--sidebar .attr-mod { font-size: 22px; }
+  .attr-grid.attr-grid--sidebar .attr-score { font-size: 11px; margin-top: 4px; }
   .turn { grid-template-columns: 88px 1fr; }
   .trait-item { grid-template-columns: 1fr; gap: 2px; }
   .trait-name { font-size: 10px; color: var(--t3); }
+}
+
+/* ─── A4 print: pen/eraser friendly ─── */
+@page {
+  size: A4;
+  margin: 10mm;
+}
+@media print {
+  /* Kill UI chrome + force predictable ink */
+  html, body { background: #ffffff !important; }
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+  }
+
+  /* Layout tuned to A4 content box (210 - 2×10 = 190mm) */
+  .sheet {
+    --bg: #ffffff;
+    --surf: #ffffff;
+    --surf2: #ffffff;
+    --bdr: #6a6a6a;   /* pencil-friendly outlines */
+    --bdr2: #1f1f1f;  /* emphasis */
+    --accent: #111111;
+    --t1: #111111;
+    --t2: #2a2a2a;
+    --t3: #4a4a4a;
+    --hp: #111111;
+    --tmp: #111111;
+    --fp: #111111;
+    --hd: #111111;
+    padding: 0;
+    margin: 0 auto;
+    width: 190mm;
+    font-size: 11.5px;
+    line-height: 1.35;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Remove hover-only styling */
+  .attr-card:hover,
+  .stat-card:hover,
+  .skill-badge:hover,
+  .feat-card:hover { border-color: var(--bdr); }
+
+  /* Make “fillable” elements neutral + erasable */
+  .counter,
+  .attr-card,
+  .stat-card,
+  .skill-badge,
+  .feat-card {
+    background: #ffffff !important;
+    border-color: var(--bdr) !important;
+  }
+
+  /* Section accents become simple ink */
+  .s-header { border-bottom-color: var(--bdr); }
+  .s-header::after { background: #111111; }
+  .lbl, .s-class { color: #111111; opacity: 1; }
+  .rule-item::before { color: #111111; opacity: 1; }
+
+  /* Interactive controls shouldn’t print */
+  button { display: none !important; }
+
+  /* Pips: always empty circles for manual fill */
+  .pip,
+  .adr-pip {
+    background: transparent !important;
+    border-color: #111111 !important;
+  }
+  .pip.hp-filled,
+  .pip.tmp-filled,
+  .pip.focus-filled,
+  .pip.hd-filled,
+  .adr-pip.adr-avail {
+    background: transparent !important;
+    border-color: #111111 !important;
+  }
+  .pip-legend .pip-dot {
+    background: transparent !important;
+    border: 1.5px solid #111111 !important;
+  }
+
+  /* Badges: outline only */
+  .badge,
+  .badge-rest,
+  .badge-free,
+  .badge-fp {
+    background: transparent !important;
+    border: 1px solid #111111 !important;
+    color: #111111 !important;
+  }
+
+  /* Keep cards from splitting awkwardly across pages */
+  .counter,
+  .feat-card,
+  .stat-card,
+  .attr-grid,
+  .quick-grid,
+  .turn-grid,
+  .trait-list { break-inside: avoid; page-break-inside: avoid; }
+
+  /* Slightly tighter spacing so it fits A4 more reliably */
+  .s-header { margin-bottom: 10px; padding-bottom: 10px; }
+  .div { margin: 10px 0; }
+  .feat-body, .rule-item, .turn, .trait-item { font-size: 11px; }
 }
 </style>
 
@@ -397,19 +544,6 @@
     </div>
   </div>
 
-  <!-- attributes -->
-  <p class="lbl">Attributes</p>
-  <div class="attr-grid">
-    <div class="attr-card"><div class="attr-lbl">STR</div><div class="attr-mod">−2</div><div class="attr-score">6</div></div>
-    <div class="attr-card"><div class="attr-lbl">DEX</div><div class="attr-mod">+3</div><div class="attr-score">17</div></div>
-    <div class="attr-card"><div class="attr-lbl">CON</div><div class="attr-mod">+3</div><div class="attr-score">16</div></div>
-    <div class="attr-card"><div class="attr-lbl">INT</div><div class="attr-mod">+0</div><div class="attr-score">11</div></div>
-    <div class="attr-card"><div class="attr-lbl">WIS</div><div class="attr-mod">+4</div><div class="attr-score">19</div></div>
-    <div class="attr-card"><div class="attr-lbl">CHA</div><div class="attr-mod">−2</div><div class="attr-score">6</div></div>
-  </div>
-
-  <hr class="div">
-
   <!-- quick stats -->
   <p class="lbl">Quick Stats</p>
   <div class="quick-grid">
@@ -423,9 +557,24 @@
 
   <hr class="div">
 
-  <!-- counters -->
-  <p class="lbl">Counters</p>
-  <div class="counters-grid">
+  <div class="layout">
+    <aside class="sidebar">
+      <!-- attributes -->
+      <p class="lbl">Attributes</p>
+      <div class="attr-grid attr-grid--sidebar">
+        <div class="attr-card"><div class="attr-lbl">STR</div><div class="attr-mod">−2 <span class="attr-score-inline">[6]</span></div></div>
+        <div class="attr-card"><div class="attr-lbl">DEX</div><div class="attr-mod">+3 <span class="attr-score-inline">[17]</span></div></div>
+        <div class="attr-card"><div class="attr-lbl">CON</div><div class="attr-mod">+3 <span class="attr-score-inline">[16]</span></div></div>
+        <div class="attr-card"><div class="attr-lbl">INT</div><div class="attr-mod">+0 <span class="attr-score-inline">[11]</span></div></div>
+        <div class="attr-card"><div class="attr-lbl">WIS</div><div class="attr-mod">+4 <span class="attr-score-inline">[19]</span></div></div>
+        <div class="attr-card"><div class="attr-lbl">CHA</div><div class="attr-mod">−2 <span class="attr-score-inline">[6]</span></div></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <!-- counters -->
+      <p class="lbl">Counters</p>
+      <div class="counters-grid">
 
     <div class="counter counter-hp">
       <div class="c-header">
@@ -484,6 +633,9 @@
   </div>
 
   <hr class="div">
+
+    </main>
+  </div>
 
   <!-- features -->
   <p class="lbl">Usable traits & feats</p>

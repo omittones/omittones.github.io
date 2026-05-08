@@ -80,37 +80,6 @@
     color: var(--t2);
   }
 
-  /* ─── print mode toggle (screen only) ─── */
-  .print-toggle {
-    position: absolute;
-    right: 0;
-    top: 0;
-    display: inline-flex;
-    gap: 6px;
-    align-items: center;
-  }
-  .print-toggle .pt-label {
-    font-size: 10px;
-    color: var(--t3);
-    white-space: nowrap;
-  }
-  .print-toggle .pt-btn {
-    font-family: "Cinzel", serif;
-    font-size: 10px;
-    letter-spacing: 0.06em;
-    padding: 6px 10px;
-    border-radius: 6px;
-    border: 1.5px solid var(--bdr);
-    background: transparent;
-    color: var(--t2);
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .print-toggle .pt-btn.is-active {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-
   /* ─── section label ─── */
   .lbl {
     font-family: "Cinzel", serif;
@@ -392,59 +361,6 @@
     color: var(--accent);
   }
 
-  .hp-advance {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    margin: -2px 0 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--bdr);
-    flex-wrap: wrap;
-  }
-  .hp-advance-label {
-    font-family: "Cinzel", serif;
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--t2);
-  }
-  .hp-advance-form {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 6px;
-    font-size: 11px;
-    color: var(--t2);
-  }
-  .hp-advance-input {
-    width: 52px;
-    border: 1px solid var(--bdr);
-    border-radius: 8px;
-    padding: 4px 8px;
-    background: var(--surf);
-    color: var(--t1);
-    font-family: "Barlow Condensed", sans-serif;
-    font-size: 14px;
-    line-height: 1.2;
-  }
-  .hp-advance-input:focus {
-    outline: none;
-    border-color: var(--bdr2);
-  }
-  .hp-advance-btn {
-    border: 1px solid var(--bdr);
-    border-radius: 8px;
-    padding: 4px 8px;
-    background: transparent;
-    color: var(--t3);
-    cursor: pointer;
-    font-size: 11px;
-  }
-  .hp-advance-btn:hover {
-    border-color: var(--bdr2);
-    color: var(--t2);
-  }
-
   /* ─── skills ─── */
   .skills-row {
     display: flex;
@@ -687,43 +603,19 @@
     margin: 10mm;
   }
   @media print {
-    /* Layout tuned to A4 content box (210 - 2×10 = 190mm) */
-    .sheet {
-      padding: 0;
-      margin: 0 auto;
-      width: 190mm;
-      font-size: 11.5px;
-      line-height: 1.35;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-
-    /* Interactive controls shouldn’t print */
-    button,
-    .print-toggle {
-      display: none !important;
-    }
-
-    /* Remove hover-only styling */
-    .attr-card:hover,
-    .stat-card:hover,
-    .skill-badge:hover,
-    .feat-card:hover {
-      border-color: var(--bdr);
-    }
-
-    /* B&W print mode (manual toggle) */
-    html.print-bw,
-    html.print-bw body {
+    /* Kill UI chrome + force predictable ink */
+    html,
+    body {
       background: #ffffff !important;
     }
-    html.print-bw * {
+    * {
       box-shadow: none !important;
       text-shadow: none !important;
       filter: none !important;
     }
 
-    html.print-bw .sheet {
+    /* Layout tuned to A4 content box (210 - 2×10 = 190mm) */
+    .sheet {
       --bg: #ffffff;
       --surf: #ffffff;
       --surf2: #ffffff;
@@ -737,55 +629,79 @@
       --tmp: #111111;
       --fp: #111111;
       --hd: #111111;
+      padding: 0;
+      margin: 0 auto;
+      width: 190mm;
+      font-size: 11.5px;
+      line-height: 1.35;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
     }
 
-    html.print-bw .counter,
-    html.print-bw .attr-card,
-    html.print-bw .stat-card,
-    html.print-bw .skill-badge,
-    html.print-bw .feat-card {
+    /* Remove hover-only styling */
+    .attr-card:hover,
+    .stat-card:hover,
+    .skill-badge:hover,
+    .feat-card:hover {
+      border-color: var(--bdr);
+    }
+
+    /* Make “fillable” elements neutral + erasable */
+    .counter,
+    .attr-card,
+    .stat-card,
+    .skill-badge,
+    .feat-card {
       background: #ffffff !important;
       border-color: var(--bdr) !important;
     }
 
-    html.print-bw .s-header {
+    /* Section accents become simple ink */
+    .s-header {
       border-bottom-color: var(--bdr);
     }
-    html.print-bw .s-header::after {
+    .s-header::after {
       background: #111111;
     }
-    html.print-bw .lbl,
-    html.print-bw .s-class {
+    .lbl,
+    .s-class {
       color: #111111;
       opacity: 1;
     }
-    html.print-bw .rule-item::before {
+    .rule-item::before {
       color: #111111;
       opacity: 1;
     }
 
-    html.print-bw .pip,
-    html.print-bw .adr-pip {
+    /* Interactive controls shouldn’t print */
+    button {
+      display: none !important;
+    }
+
+    /* Pips: always empty circles for manual fill */
+    .pip,
+    .adr-pip {
       background: transparent !important;
       border-color: #111111 !important;
     }
-    html.print-bw .pip.hp-filled,
-    html.print-bw .pip.tmp-filled,
-    html.print-bw .pip.focus-filled,
-    html.print-bw .pip.hd-filled,
-    html.print-bw .adr-pip.adr-avail {
+    .pip.hp-filled,
+    .pip.tmp-filled,
+    .pip.focus-filled,
+    .pip.hd-filled,
+    .adr-pip.adr-avail {
       background: transparent !important;
       border-color: #111111 !important;
     }
-    html.print-bw .pip-legend .pip-dot {
+    .pip-legend .pip-dot {
       background: transparent !important;
       border: 1.5px solid #111111 !important;
     }
 
-    html.print-bw .badge,
-    html.print-bw .badge-rest,
-    html.print-bw .badge-free,
-    html.print-bw .badge-fp {
+    /* Badges: outline only */
+    .badge,
+    .badge-rest,
+    .badge-free,
+    .badge-fp {
       background: transparent !important;
       border: 1px solid #111111 !important;
       color: #111111 !important;
@@ -826,15 +742,10 @@
   <!-- header -->
   <div class="s-header">
     <div class="s-name">Orc Monk: Stick</div>
-    <div class="print-toggle" role="group" aria-label="Print mode">
-      <span class="pt-label">Print:</span>
-      <button class="pt-btn" id="print-color" type="button">Color</button>
-      <button class="pt-btn" id="print-bw" type="button">B&amp;W</button>
-    </div>
     <div class="s-meta">
       <span class="s-class">Monk</span>
       <span class="s-sep">·</span>
-      <span class="s-sub">Level 3 · PHB 2024 · Warrior of the Open Hand</span>
+      <span class="s-sub">Level 2 · PHB 2024</span>
     </div>
   </div>
 
@@ -935,13 +846,6 @@
             <span class="c-title">Hit points</span>
             <span class="c-sub" id="hp-label">17 / 17</span>
           </div>
-          <div class="hp-advance">
-            <span class="hp-advance-label">Lvl 3 HP:</span>
-            <span class="hp-advance-form">
-              17 + <input id="hp-roll" class="hp-advance-input" type="number" inputmode="numeric" min="1" max="8" placeholder="d8" /> + 3
-              <button class="hp-advance-btn" id="hp-roll-clear" type="button">clear</button>
-            </span>
-          </div>
           <div class="pips" id="hp-pips"></div>
           <div class="pip-legend">
             <div class="pip-legend-item">
@@ -982,7 +886,7 @@
             <span class="c-sub">Short / Long Rest</span>
           </div>
           <div class="pips" id="focus-pips"></div>
-          <div class="c-val" id="focus-val">3 / 3</div>
+          <div class="c-val" id="focus-val">2 / 2</div>
         </div>
 
         <div class="counter">
@@ -991,7 +895,7 @@
             <span class="c-sub">d8 · Long Rest</span>
           </div>
           <div class="pips" id="hd-pips"></div>
-          <div class="c-val" id="hd-val">3 / 3</div>
+          <div class="c-val" id="hd-val">2 / 2</div>
         </div>
       </div>
 
@@ -1095,32 +999,6 @@
   </div>
   <div class="feat-card">
     <div class="feat-title">
-      <i class="ti ti-hand-finger" aria-hidden="true"></i> Open Hand technique
-      <span class="badge badge-free">Flurry hit</span>
-    </div>
-    <div class="feat-body">
-      Each time you hit with <strong>Flurry of Blows</strong>, choose one (per
-      hit): <strong>Addle</strong> (no save; no Opportunity Attacks until start
-      of its next turn), <strong>Push</strong> (STR save DC 14; pushed 15 ft),
-      or <strong>Topple</strong> (DEX save DC 14; prone). Save DC is
-      <strong>14</strong> (8 + WIS 4 + PB 2).
-    </div>
-  </div>
-  <div class="feat-card">
-    <div class="feat-title">
-      <i class="ti ti-arrow-back-up" aria-hidden="true"></i> Deflect attacks
-      <span class="badge badge-free">Reaction</span>
-    </div>
-    <div class="feat-body">
-      When hit by B/P/S damage: reduce damage by <strong>1d10 + 6</strong>
-      (DEX 3 + Monk lvl 3). If reduced to 0, spend <strong>1 FP</strong> to
-      redirect: target makes <strong>DEX save DC 14</strong> or takes
-      <strong>2d6 + 3</strong> (same damage type). Melee: within 5 ft. Ranged:
-      within 60 ft (no Total Cover).
-    </div>
-  </div>
-  <div class="feat-card">
-    <div class="feat-title">
       <i class="ti ti-shield" aria-hidden="true"></i> Patient defense
       <span class="badge badge-free">free</span>
       <span class="badge badge-fp">or 1 FP</span>
@@ -1141,7 +1019,6 @@
       doubled.
     </div>
   </div>
-  
   <div class="feat-card">
     <div class="feat-title">
       <i class="ti ti-flame" aria-hidden="true"></i> Adrenaline rush
@@ -1307,45 +1184,21 @@
   </div>
 
   <hr class="div" />
-  <p class="sheet-note">Level 3: Deflect Attacks + Open Hand Technique.</p>
+  <p class="sheet-note">Level 3: Deflect Attacks + Monk subclass choice.</p>
 </div>
 
 <script>
-  const PRINT_MODE_KEY = "sheet:printMode";
-  function applyPrintMode(mode) {
-    const html = document.documentElement;
-    const isBW = mode === "bw";
-    html.classList.toggle("print-bw", isBW);
-    document.getElementById("print-color")?.classList.toggle("is-active", !isBW);
-    document.getElementById("print-bw")?.classList.toggle("is-active", isBW);
-  }
-  function getStoredPrintMode() {
-    const raw = localStorage.getItem(PRINT_MODE_KEY);
-    return raw === "bw" ? "bw" : "color";
-  }
-
-  const BASE_MAX_HP = 17;
-  const LEVEL_UP_HP_CON_BONUS = 3;
+  const MAX_HP = 17;
   const TEMP_MAX = 2;
   const ADR_MAX = 2;
   let hpLost = 0;
   let tempHP = 0;
   let adrUsed = 0;
-  let levelUpHpRoll = null;
-
-  function getMaxHP() {
-    const extra =
-      typeof levelUpHpRoll === "number"
-        ? levelUpHpRoll + LEVEL_UP_HP_CON_BONUS
-        : 0;
-    return BASE_MAX_HP + extra;
-  }
 
   function renderHP() {
     const container = document.getElementById("hp-pips");
     const label = document.getElementById("hp-label");
     container.innerHTML = "";
-    const MAX_HP = getMaxHP();
     const currentHP = Math.max(0, MAX_HP - hpLost);
     const aliveCount = currentHP + tempHP;
     const total = MAX_HP + tempHP;
@@ -1378,13 +1231,8 @@
       container.appendChild(p);
     }
 
-    const pending = levelUpHpRoll == null ? " · Lvl-up HP pending" : "";
     label.textContent =
-      currentHP +
-      " / " +
-      MAX_HP +
-      (tempHP > 0 ? " · Temp: " + tempHP : "") +
-      pending;
+      currentHP + " / " + MAX_HP + (tempHP > 0 ? " · Temp: " + tempHP : "");
 
     // Adrenaline Rush uses
     const adrContainer = document.getElementById("adr-uses");
@@ -1410,7 +1258,6 @@
     adrUsed++;
     // ADR gives "2 Temp HP", but we treat it as a buffer that tops up HP first
     // so you don't track temp pips while still missing real HP.
-    const MAX_HP = getMaxHP();
     const cur = Math.max(0, MAX_HP - hpLost);
     const missing = Math.max(0, MAX_HP - cur);
     const heal = Math.min(TEMP_MAX, missing);
@@ -1457,47 +1304,13 @@
   }
 
   renderHP();
-  const hpRollInput = document.getElementById("hp-roll");
-  const hpRollClear = document.getElementById("hp-roll-clear");
-  function syncHpRollFromInput() {
-    const raw = hpRollInput.value.trim();
-    if (!raw) {
-      levelUpHpRoll = null;
-      renderHP();
-      return;
-    }
-    const n = Number(raw);
-    if (!Number.isFinite(n)) return;
-    const clamped = Math.max(1, Math.min(8, Math.floor(n)));
-    if (String(clamped) !== raw) hpRollInput.value = String(clamped);
-    levelUpHpRoll = clamped;
-    renderHP();
-  }
-  hpRollInput.addEventListener("input", syncHpRollFromInput);
-  hpRollClear.addEventListener("click", () => {
-    hpRollInput.value = "";
-    levelUpHpRoll = null;
-    renderHP();
-  });
-
-  // Print mode toggle (CSS can't detect PDF vs paper)
-  applyPrintMode(getStoredPrintMode());
-  document.getElementById("print-color")?.addEventListener("click", () => {
-    localStorage.setItem(PRINT_MODE_KEY, "color");
-    applyPrintMode("color");
-  });
-  document.getElementById("print-bw")?.addEventListener("click", () => {
-    localStorage.setItem(PRINT_MODE_KEY, "bw");
-    applyPrintMode("bw");
-  });
-
   const focusCounter = makeSimpleCounter(
     "focus-pips",
     "focus-val",
-    3,
+    2,
     "focus-filled",
   );
-  makeSimpleCounter("hd-pips", "hd-val", 3, "hd-filled");
+  makeSimpleCounter("hd-pips", "hd-val", 2, "hd-filled");
 
   document.getElementById("adr-rest-btn").addEventListener("click", () => {
     focusCounter.fillToMax();

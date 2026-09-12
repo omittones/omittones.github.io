@@ -392,58 +392,6 @@
     color: var(--accent);
   }
 
-  .hp-advance {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    margin: -2px 0 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--bdr);
-    flex-wrap: wrap;
-  }
-  .hp-advance-label {
-    font-family: "Cinzel", serif;
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--t2);
-  }
-  .hp-advance-form {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 6px;
-    font-size: 11px;
-    color: var(--t2);
-  }
-  .hp-advance-input {
-    width: 52px;
-    border: 1px solid var(--bdr);
-    border-radius: 8px;
-    padding: 4px 8px;
-    background: var(--surf);
-    color: var(--t1);
-    font-family: "Barlow Condensed", sans-serif;
-    font-size: 14px;
-    line-height: 1.2;
-  }
-  .hp-advance-input:focus {
-    outline: none;
-    border-color: var(--bdr2);
-  }
-  .hp-advance-btn {
-    border: 1px solid var(--bdr);
-    border-radius: 8px;
-    padding: 4px 8px;
-    background: transparent;
-    color: var(--t3);
-    cursor: pointer;
-    font-size: 11px;
-  }
-  .hp-advance-btn:hover {
-    border-color: var(--bdr2);
-    color: var(--t2);
-  }
 
   /* ─── skills ─── */
   .skills-row {
@@ -677,6 +625,10 @@
   .main {
     min-width: 0;
   }
+  .skills-full {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
 
   /* ─── mobile ─── */
   @media (max-width: 540px) {
@@ -877,14 +829,14 @@
   <p class="lbl">Quick Stats</p>
   <div class="quick-grid">
     <div class="stat-card">
+      <div class="stat-lbl">Initiative</div>
+      <div class="stat-val">d20 + 3</div>
+      <div class="stat-sub">DEX 3</div>
+    </div>
+    <div class="stat-card">
       <div class="stat-lbl">Attack roll</div>
       <div class="stat-val">d20 +5</div>
       <div class="stat-sub">DEX +3 · Prof +2</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-lbl">Armor class</div>
-      <div class="stat-val">17</div>
-      <div class="stat-sub">10 + DEX 3 + WIS 4</div>
     </div>
     <div class="stat-card">
       <div class="stat-lbl">Damage</div>
@@ -892,11 +844,16 @@
       <div class="stat-sub">4–9 per hit</div>
     </div>
     <div class="stat-card">
+      <div class="stat-lbl">Armor class</div>
+      <div class="stat-val">17</div>
+      <div class="stat-sub">10 + DEX 3 + WIS 4</div>
+    </div>
+    <div class="stat-card">
       <div class="stat-lbl">Speed</div>
       <div class="stat-val">40 ft</div>
       <div class="stat-sub">30 base + 10 unarmored</div>
     </div>
-    
+
     <div class="stat-card">
       <div class="stat-lbl">Saving throws</div>
       <div class="stat-val">STR · DEX</div>
@@ -906,210 +863,6 @@
       <div class="stat-lbl">Short Rest</div>
       <div class="stat-val">d8 + 3</div>
       <div class="stat-sub">Spend Hit Dice to heal d8 + CON HP</div>
-    </div>
-  </div>
-
-  <hr class="div" />
-
-  <!-- fight flow -->
-  <p class="lbl">Fight flow</p>
-
-  <div class="feat-card">
-    <div class="feat-title">
-      <i class="ti ti-swords" aria-hidden="true"></i> When combat starts
-      <span class="badge badge-rest">Long Rest · 1×</span>
-    </div>
-    <div class="feat-body">
-      <div class="rule-list">
-        <div class="rule-item">
-          <strong>Uncanny Metabolism.</strong> On your initiative roll: regain
-          ALL Focus + heal <strong>1d6 + 3</strong>
-          <span class="ff-src">Monk lvl 3 + 1d6</span>.
-        </div>
-        <div class="rule-item">
-          <strong>Assess &amp; position.</strong> Note threats and cover, then
-          use your 40 ft <span class="ff-src">30 base + 10 unarmored</span> to
-          set up a good first turn.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="feat-card">
-    <div class="feat-title">
-      <i class="ti ti-alert-triangle" aria-hidden="true"></i> Bonus Action — pick ONE
-    </div>
-    <div class="feat-body">
-      You get <strong>one</strong> Bonus Action per turn. The 0-FP Unarmed
-      Strike is one of these options, not a freebie stacked on top.
-      <div class="ff-collision">
-        <div>
-          <strong>Unarmed Strike</strong>
-          <span class="badge badge-free">0 FP</span> one extra Unarmed Strike
-          (Martial Arts).
-        </div>
-        <div>
-          <strong>Flurry of Blows</strong>
-          <span class="badge badge-fp">1 FP</span> two Unarmed Strikes.
-        </div>
-        <div>
-          <strong>Patient Defense</strong>
-          <span class="badge badge-free">free</span> Disengage (or +Dodge for
-          1 FP).
-        </div>
-        <div>
-          <strong>Step of the Wind</strong>
-          <span class="badge badge-free">free</span> Dash (or +Disengage for
-          1 FP).
-        </div>
-        <div>
-          <strong>Adrenaline Rush</strong>
-          <span class="badge badge-rest">Short Rest · 2×</span> Dash + 2 Temp
-          HP.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="feat-card">
-    <div class="feat-title">
-      <i class="ti ti-arrow-back-up" aria-hidden="true"></i> Off your turn — one reaction / round
-    </div>
-    <div class="feat-body">
-      <div class="rule-list">
-        <div class="rule-item">
-          <strong>Deflect Attacks.</strong> When hit by bludgeoning/piercing/
-          slashing damage, reduce it by <strong>1d10 + 6</strong>
-          <span class="ff-src">DEX 3 + Monk lvl 3</span>. If reduced to 0, spend
-          1 FP to redirect: DEX save <strong>DC 14</strong>
-          <span class="ff-src">8 + WIS 4 + PB 2</span> or take 2d6 + 3
-          <span class="ff-src">DEX 3</span>.
-        </div>
-        <div class="rule-item">
-          <strong>Opportunity Attack.</strong> When a creature you can see
-          leaves your reach, one melee attack against it. (Disengage via Patient
-          Defense or Step of the Wind avoids giving enemies theirs.)
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="feat-card">
-    <div class="feat-title">
-      <i class="ti ti-hand-stop" aria-hidden="true"></i> Grapple / Shove
-      <span class="badge badge-free">replaces an attack</span>
-    </div>
-    <div class="feat-body">
-      Instead of dealing damage on one attack: the target makes a STR or DEX
-      save (their choice) vs <strong>DC 13</strong>
-      <span class="ff-src">8 + DEX 3 + PB 2</span>. On a fail —
-      <strong>Grapple</strong> (Speed 0, drag it as you move) or
-      <strong>Shove</strong> (push 5 ft <em>or</em> knock it prone). Target must
-      be no more than one size larger than you.
-    </div>
-  </div>
-
-  <div class="feat-card">
-    <div class="feat-title">
-      <i class="ti ti-skull" aria-hidden="true"></i> Dropping to 0 HP
-      <span class="badge badge-rest">Relentless · Long Rest · 1×</span>
-    </div>
-    <div class="feat-body">
-      <div class="rule-list">
-        <div class="rule-item">
-          <strong>Relentless Endurance first.</strong> If you'd hit 0 HP and
-          haven't used it this long rest, drop to <strong>1 HP</strong> instead.
-        </div>
-        <div class="rule-item">
-          <strong>Otherwise, death saves.</strong> Roll d20 at the start of each
-          of your turns: 10+ succeeds, 9 or less fails. Nat 1 = 2 failures; nat
-          20 = wake with 1 HP. Taking damage at 0 HP = 1 failure (2 on a crit).
-          <div style="margin-top: 6px">
-            Successes
-            <span class="ff-box"></span><span class="ff-box"></span
-            ><span class="ff-box"></span> &nbsp; Failures
-            <span class="ff-box"></span><span class="ff-box"></span
-            ><span class="ff-box"></span>
-          </div>
-        </div>
-        <div class="rule-item">
-          <strong>Stabilize.</strong> A <strong>DC 10</strong> WIS (Medicine)
-          check as an action stabilizes a creature at 0 HP; any healing also
-          revives it. Your Medicine is
-          <span class="ff-src">+6 — WIS 4 + PB 2</span>.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="feat-card">
-    <div class="feat-title">
-      <i class="ti ti-alert-circle" aria-hidden="true"></i> Conditions — effect on rolls
-    </div>
-    <div class="feat-body">
-      <div class="rule-list">
-        <div class="rule-item">
-          <strong>Prone.</strong> Your attacks have disadvantage; melee attacks
-          against you have advantage, ranged have disadvantage. (Topple sets
-          this on enemies.)
-        </div>
-        <div class="rule-item">
-          <strong>Grappled.</strong> Speed 0; disadvantage on attacks against
-          anyone other than the grappler.
-        </div>
-        <div class="rule-item">
-          <strong>Restrained.</strong> Speed 0; your attacks disadvantage,
-          attacks against you advantage; disadvantage on DEX saves.
-        </div>
-        <div class="rule-item">
-          <strong>Frightened.</strong> Disadvantage on attacks and ability
-          checks while the source is in sight; can't willingly move closer to
-          it.
-        </div>
-        <div class="rule-item">
-          <strong>Poisoned.</strong> Disadvantage on attacks and ability checks.
-        </div>
-        <div class="rule-item">
-          <strong>Stunned.</strong> Incapacitated, can't move, auto-fail STR and
-          DEX saves, attacks against you have advantage.
-        </div>
-        <div class="rule-item">
-          <strong>Incapacitated.</strong> No actions, Bonus Actions, or
-          Reactions.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="feat-card">
-    <div class="feat-title">
-      <i class="ti ti-arrow-up" aria-hidden="true"></i> Level-up modifiers
-    </div>
-    <div class="feat-body">
-      When Stick levels, these numbers change — update them here and in Quick
-      Stats / feat cards:
-      <div class="rule-list">
-        <div class="rule-item">
-          <strong>Focus Points</strong> = Monk level (now 3) — updates the
-          pick-ONE FP costs and Deflect/redirect.
-        </div>
-        <div class="rule-item">
-          <strong>Martial Arts die</strong> grows with level (1d6 now → 1d8 at
-          lvl 5) — Quick Stats damage line.
-        </div>
-        <div class="rule-item">
-          <strong>Deflect &amp; Uncanny</strong> scale with Monk level:
-          reduce 1d10 + DEX + level, heal 1d6 + level.
-        </div>
-        <div class="rule-item">
-          <strong>PB-driven DCs</strong> (feature DC 14, Grapple/Shove DC 13,
-          Medicine +) all rise when Proficiency Bonus does (next at lvl 5).
-        </div>
-        <div class="rule-item">
-          <strong>Unarmored Movement</strong> speed bonus increases at lvl 6+ —
-          the 40 ft on the start-of-combat card.
-        </div>
-      </div>
     </div>
   </div>
 
@@ -1172,14 +925,7 @@
         <div class="counter counter-hp">
           <div class="c-header">
             <span class="c-title">Hit points</span>
-            <span class="c-sub" id="hp-label">17 / 17</span>
-          </div>
-          <div class="hp-advance">
-            <span class="hp-advance-label">Lvl 3 HP:</span>
-            <span class="hp-advance-form">
-              17 + <input id="hp-roll" class="hp-advance-input" type="number" inputmode="numeric" min="1" max="8" placeholder="d8" /> + 3
-              <button class="hp-advance-btn" id="hp-roll-clear" type="button">clear</button>
-            </span>
+            <span class="c-sub" id="hp-label">21 / 21</span>
           </div>
           <div class="pips" id="hp-pips"></div>
           <div class="pip-legend">
@@ -1234,8 +980,9 @@
         </div>
       </div>
 
-      <hr class="div" />
+    </main>
 
+    <section class="skills-full">
       <!-- skills -->
       <p class="lbl">Skills</p>
       <div class="skills-row">
@@ -1314,24 +1061,206 @@
           <span class="skill-src">WIS</span>
         </div>
       </div>
-
-      <hr class="div" />
-    </main>
+    </section>
   </div>
+
+  <hr class="div" />
+
+  <!-- fight flow -->
+  <p class="lbl">Fight flow</p>
+
+  <div class="feat-card">
+    <div class="feat-title">
+      <i class="ti ti-swords" aria-hidden="true"></i> When combat starts
+      <span class="badge badge-rest">Long Rest · 1×</span>
+    </div>
+    <div class="feat-body">
+      <div class="rule-list">
+        <div class="rule-item">
+          <strong>Uncanny Metabolism.</strong> On your initiative roll: regain
+          ALL Focus + heal <strong>1d6 + 3</strong>
+          <span class="ff-src">Monk lvl 3 + 1d6</span>.
+        </div>
+        <div class="rule-item">
+          <strong>Assess &amp; position.</strong> Note threats and cover, then
+          use your 40 ft <span class="ff-src">30 base + 10 unarmored</span> to
+          set up a good first turn.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-title">
+      <i class="ti ti-sword" aria-hidden="true"></i> Your action
+    </div>
+    <div class="feat-body">
+      <div class="rule-list">
+        <div class="rule-item">
+          <strong>Attack roll.</strong> <strong>d20 + 5</strong>
+          <span class="ff-src">DEX 3 + PB 2</span> vs the target's AC. On a hit,
+          roll damage.
+        </div>
+        <div class="rule-item">
+          <strong>Damage.</strong> <strong>1d6 + 3</strong>
+          <span class="ff-src">Martial Arts 1d6 + DEX 3</span> bludgeoning per
+          Unarmed Strike.
+        </div>
+        <div class="rule-item">
+          <strong>Grapple / Shove</strong>
+          <span class="badge badge-free">replaces an attack</span> Instead of
+          dealing damage on one attack: the target makes a STR or DEX save
+          (their choice) vs <strong>DC 13</strong>
+          <span class="ff-src">8 + DEX 3 + PB 2</span>. On a fail —
+          <strong>Grapple</strong> (Speed 0, drag it as you move) or
+          <strong>Shove</strong> (push 5 ft <em>or</em> knock it prone). Target
+          must be no more than one size larger than you.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-title">
+      <i class="ti ti-alert-triangle" aria-hidden="true"></i> Bonus Action — pick ONE
+    </div>
+    <div class="feat-body">
+      You get <strong>one</strong> Bonus Action per turn. The 0-FP Unarmed
+      Strike is one of these options, not a freebie stacked on top.
+      <div class="ff-collision">
+        <div>
+          <strong>Unarmed Strike</strong>
+          <span class="badge badge-free">0 FP</span> one extra Unarmed Strike
+          (Martial Arts).
+        </div>
+        <div>
+          <strong>Flurry of Blows</strong>
+          <span class="badge badge-fp">1 FP</span> two Unarmed Strikes.
+        </div>
+        <div>
+          <strong>Patient Defense</strong>
+          <span class="badge badge-free">free</span> Disengage (or +Dodge for
+          1 FP).
+        </div>
+        <div>
+          <strong>Step of the Wind</strong>
+          <span class="badge badge-free">free</span> Dash (or +Disengage for
+          1 FP).
+        </div>
+        <div>
+          <strong>Adrenaline Rush</strong>
+          <span class="badge badge-rest">Short Rest · 2×</span> Dash + 2 Temp
+          HP.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-title">
+      <i class="ti ti-arrow-back-up" aria-hidden="true"></i> When Attacked — one reaction / round
+    </div>
+    <div class="feat-body">
+      <div class="rule-list">
+        <div class="rule-item">
+          <strong>Read it vs AC 17</strong>
+          <span class="ff-src">10 + DEX 3 + WIS 4</span>. If it hits, you may
+          spend your one reaction this round:
+        </div>
+        <div class="rule-item">
+          <strong>Deflect Attacks.</strong> When hit by bludgeoning/piercing/
+          slashing damage, reduce it by <strong>1d10 + 6</strong>
+          <span class="ff-src">DEX 3 + Monk lvl 3</span>. If reduced to 0, spend
+          1 FP to redirect: DEX save <strong>DC 14</strong>
+          <span class="ff-src">8 + WIS 4 + PB 2</span> or take 2d6 + 3
+          <span class="ff-src">DEX 3</span>.
+        </div>
+        <div class="rule-item">
+          <strong>Opportunity Attack.</strong> When a creature you can see
+          leaves your reach, one melee attack against it. (Disengage via Patient
+          Defense or Step of the Wind avoids giving enemies theirs.)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-title">
+      <i class="ti ti-skull" aria-hidden="true"></i> Dropping to 0 HP
+      <span class="badge badge-rest">Relentless · Long Rest · 1×</span>
+    </div>
+    <div class="feat-body">
+      <div class="rule-list">
+        <div class="rule-item">
+          <strong>Relentless Endurance first.</strong> If you'd hit 0 HP and
+          haven't used it this long rest, drop to <strong>1 HP</strong> instead.
+        </div>
+        <div class="rule-item">
+          <strong>Otherwise, death saves.</strong> Roll d20 at the start of each
+          of your turns: 10+ succeeds, 9 or less fails. Nat 1 = 2 failures; nat
+          20 = wake with 1 HP. Taking damage at 0 HP = 1 failure (2 on a crit).
+          <div style="margin-top: 6px">
+            Successes
+            <span class="ff-box"></span><span class="ff-box"></span
+            ><span class="ff-box"></span> &nbsp; Failures
+            <span class="ff-box"></span><span class="ff-box"></span
+            ><span class="ff-box"></span>
+          </div>
+        </div>
+        <div class="rule-item">
+          <strong>Stabilize.</strong> A <strong>DC 10</strong> WIS (Medicine)
+          check as an action stabilizes a creature at 0 HP; any healing also
+          revives it. Your Medicine is
+          <span class="ff-src">+6 — WIS 4 + PB 2</span>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="feat-card">
+    <div class="feat-title">
+      <i class="ti ti-alert-circle" aria-hidden="true"></i> Conditions — effect on rolls
+    </div>
+    <div class="feat-body">
+      <div class="rule-list">
+        <div class="rule-item">
+          <strong>Prone.</strong> Your attacks have disadvantage; melee attacks
+          against you have advantage, ranged have disadvantage. (Topple sets
+          this on enemies.)
+        </div>
+        <div class="rule-item">
+          <strong>Grappled.</strong> Speed 0; disadvantage on attacks against
+          anyone other than the grappler.
+        </div>
+        <div class="rule-item">
+          <strong>Restrained.</strong> Speed 0; your attacks disadvantage,
+          attacks against you advantage; disadvantage on DEX saves.
+        </div>
+        <div class="rule-item">
+          <strong>Frightened.</strong> Disadvantage on attacks and ability
+          checks while the source is in sight; can't willingly move closer to
+          it.
+        </div>
+        <div class="rule-item">
+          <strong>Poisoned.</strong> Disadvantage on attacks and ability checks.
+        </div>
+        <div class="rule-item">
+          <strong>Stunned.</strong> Incapacitated, can't move, auto-fail STR and
+          DEX saves, attacks against you have advantage.
+        </div>
+        <div class="rule-item">
+          <strong>Incapacitated.</strong> No actions, Bonus Actions, or
+          Reactions.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div" />
 
   <!-- features -->
   <p class="lbl">Usable traits & feats</p>
 
-  <div class="feat-card">
-    <div class="feat-title">
-      <i class="ti ti-bolt" aria-hidden="true"></i> Flurry of blows
-      <span class="badge badge-fp">1 FP</span>
-    </div>
-    <div class="feat-body">
-      After the Attack action: two Unarmed Strikes as a Bonus Action. Total 3
-      hits in one turn.
-    </div>
-  </div>
   <div class="feat-card">
     <div class="feat-title">
       <i class="ti ti-hand-finger" aria-hidden="true"></i> Open Hand technique
@@ -1343,52 +1272,6 @@
       of its next turn), <strong>Push</strong> (STR save DC 14; pushed 15 ft),
       or <strong>Topple</strong> (DEX save DC 14; prone). Save DC is
       <strong>14</strong> (8 + WIS 4 + PB 2).
-    </div>
-  </div>
-  <div class="feat-card">
-    <div class="feat-title">
-      <i class="ti ti-arrow-back-up" aria-hidden="true"></i> Deflect attacks
-      <span class="badge badge-free">Reaction</span>
-    </div>
-    <div class="feat-body">
-      When hit by B/P/S damage: reduce damage by <strong>1d10 + 6</strong>
-      (DEX 3 + Monk lvl 3). If reduced to 0, spend <strong>1 FP</strong> to
-      redirect: target makes <strong>DEX save DC 14</strong> or takes
-      <strong>2d6 + 3</strong> (same damage type). Melee: within 5 ft. Ranged:
-      within 60 ft (no Total Cover).
-    </div>
-  </div>
-  <div class="feat-card">
-    <div class="feat-title">
-      <i class="ti ti-shield" aria-hidden="true"></i> Patient defense
-      <span class="badge badge-free">free</span>
-      <span class="badge badge-fp">or 1 FP</span>
-    </div>
-    <div class="feat-body">
-      Free: Disengage as Bonus Action. Spend 1 FP: Disengage + Dodge as Bonus
-      Action.
-    </div>
-  </div>
-  <div class="feat-card">
-    <div class="feat-title">
-      <i class="ti ti-run" aria-hidden="true"></i> Step of the wind
-      <span class="badge badge-free">free</span>
-      <span class="badge badge-fp">or 1 FP</span>
-    </div>
-    <div class="feat-body">
-      Free: Dash as Bonus Action. Spend 1 FP: Disengage + Dash + jump distance
-      doubled.
-    </div>
-  </div>
-  
-  <div class="feat-card">
-    <div class="feat-title">
-      <i class="ti ti-flame" aria-hidden="true"></i> Adrenaline rush
-      <span class="badge badge-rest">Short Rest · 2×</span>
-    </div>
-    <div class="feat-body">
-      Dash as Bonus Action + gain 2 Temp HP (blue pips). Use before Step of the
-      Wind to save FP.
     </div>
   </div>
   <div class="feat-card">
@@ -1564,21 +1447,15 @@
     return raw === "bw" ? "bw" : "color";
   }
 
-  const BASE_MAX_HP = 17;
-  const LEVEL_UP_HP_CON_BONUS = 3;
+  const BASE_MAX_HP = 21; // lvl1 8 + lvl2 roll + CON, then lvl3 hit die rolled 1 + CON 3
   const TEMP_MAX = 2;
   const ADR_MAX = 2;
   let hpLost = 0;
   let tempHP = 0;
   let adrUsed = 0;
-  let levelUpHpRoll = null;
 
   function getMaxHP() {
-    const extra =
-      typeof levelUpHpRoll === "number"
-        ? levelUpHpRoll + LEVEL_UP_HP_CON_BONUS
-        : 0;
-    return BASE_MAX_HP + extra;
+    return BASE_MAX_HP;
   }
 
   function renderHP() {
@@ -1618,13 +1495,11 @@
       container.appendChild(p);
     }
 
-    const pending = levelUpHpRoll == null ? " · Lvl-up HP pending" : "";
     label.textContent =
       currentHP +
       " / " +
       MAX_HP +
-      (tempHP > 0 ? " · Temp: " + tempHP : "") +
-      pending;
+      (tempHP > 0 ? " · Temp: " + tempHP : "");
 
     // Adrenaline Rush uses
     const adrContainer = document.getElementById("adr-uses");
@@ -1697,28 +1572,6 @@
   }
 
   renderHP();
-  const hpRollInput = document.getElementById("hp-roll");
-  const hpRollClear = document.getElementById("hp-roll-clear");
-  function syncHpRollFromInput() {
-    const raw = hpRollInput.value.trim();
-    if (!raw) {
-      levelUpHpRoll = null;
-      renderHP();
-      return;
-    }
-    const n = Number(raw);
-    if (!Number.isFinite(n)) return;
-    const clamped = Math.max(1, Math.min(8, Math.floor(n)));
-    if (String(clamped) !== raw) hpRollInput.value = String(clamped);
-    levelUpHpRoll = clamped;
-    renderHP();
-  }
-  hpRollInput.addEventListener("input", syncHpRollFromInput);
-  hpRollClear.addEventListener("click", () => {
-    hpRollInput.value = "";
-    levelUpHpRoll = null;
-    renderHP();
-  });
 
   // Print mode toggle (CSS can't detect PDF vs paper)
   applyPrintMode(getStoredPrintMode());

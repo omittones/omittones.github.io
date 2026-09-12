@@ -1,0 +1,101 @@
+{
+  "_note": "Machine-readable snapshot of the character sheet (index.html). Source of truth is the sheet; keep this in sync on level-up. `scalesWithLevel` lists what changes and when.",
+  "identity": {
+    "name": "Stick",
+    "species": "Orc",
+    "class": "Monk",
+    "subclass": "Warrior of the Open Hand",
+    "background": "Hermit",
+    "level": 3,
+    "source": "PHB 2024"
+  },
+  "proficiencyBonus": 2,
+  "abilities": {
+    "STR": { "score": 6, "mod": -2 },
+    "DEX": { "score": 17, "mod": 3 },
+    "CON": { "score": 16, "mod": 3 },
+    "INT": { "score": 11, "mod": 0 },
+    "WIS": { "score": 19, "mod": 4 },
+    "CHA": { "score": 6, "mod": -2 }
+  },
+  "savingThrowProficiencies": ["STR", "DEX"],
+  "hitPoints": {
+    "max": 21,
+    "hitDie": "d8",
+    "hitDiceTotal": 3,
+    "breakdown": "lvl1 8 + CON 3; lvl2 roll + CON 3; lvl3 hit die rolled 1 + CON 3 = 21"
+  },
+  "combat": {
+    "armorClass": { "value": 17, "formula": "10 + DEX 3 + WIS 4 (Unarmored Defense)" },
+    "initiative": { "value": 3, "formula": "DEX 3" },
+    "speed": { "value": 40, "unit": "ft", "formula": "30 base + 10 Unarmored Movement" },
+    "attackRoll": { "value": 5, "formula": "DEX 3 + PB 2" },
+    "damage": { "die": "1d6", "mod": 3, "formula": "Martial Arts die 1d6 + DEX 3" },
+    "passivePerception": { "value": 14, "formula": "10 + WIS 4" },
+    "featureSaveDC": { "value": 14, "formula": "8 + WIS 4 + PB 2" },
+    "grappleShoveDC": { "value": 13, "formula": "8 + DEX 3 + PB 2" },
+    "shortRestHeal": { "formula": "d8 + CON 3 per Hit Die spent" }
+  },
+  "resources": {
+    "focusPoints": { "current": 3, "max": 3, "formula": "= Monk level", "recharge": "Short or Long Rest" },
+    "hitDice": { "current": 3, "max": 3, "die": "d8", "recharge": "Long Rest" },
+    "adrenalineRush": { "max": 2, "recharge": "Short Rest", "effect": "Dash as Bonus Action + 2 Temp HP" },
+    "relentlessEndurance": { "uses": 1, "recharge": "Long Rest", "effect": "drop to 1 HP instead of 0" },
+    "uncannyMetabolism": { "uses": 1, "recharge": "Long Rest", "effect": "regain all Focus + heal 1d6 + 3 on initiative" }
+  },
+  "skills": {
+    "Acrobatics":      { "bonus": 5,  "ability": "DEX", "proficient": true,  "source": "Monk" },
+    "Insight":         { "bonus": 6,  "ability": "WIS", "proficient": true,  "source": "Monk" },
+    "Medicine":        { "bonus": 6,  "ability": "WIS", "proficient": true,  "source": "Hermit" },
+    "Religion":        { "bonus": 2,  "ability": "INT", "proficient": true,  "source": "Hermit" },
+    "Animal Handling": { "bonus": 4,  "ability": "WIS", "proficient": false },
+    "Arcana":          { "bonus": 0,  "ability": "INT", "proficient": false },
+    "Athletics":       { "bonus": -2, "ability": "STR", "proficient": false },
+    "Deception":       { "bonus": -2, "ability": "CHA", "proficient": false },
+    "History":         { "bonus": 0,  "ability": "INT", "proficient": false },
+    "Intimidation":    { "bonus": -2, "ability": "CHA", "proficient": false },
+    "Investigation":   { "bonus": 0,  "ability": "INT", "proficient": false },
+    "Nature":          { "bonus": 0,  "ability": "INT", "proficient": false },
+    "Perception":      { "bonus": 4,  "ability": "WIS", "proficient": false },
+    "Performance":     { "bonus": -2, "ability": "CHA", "proficient": false },
+    "Persuasion":      { "bonus": -2, "ability": "CHA", "proficient": false },
+    "Sleight of Hand": { "bonus": 3,  "ability": "DEX", "proficient": false },
+    "Stealth":         { "bonus": 3,  "ability": "DEX", "proficient": false },
+    "Survival":        { "bonus": 4,  "ability": "WIS", "proficient": false }
+  },
+  "senses": { "darkvision": { "range": 120, "unit": "ft" } },
+  "proficiencies": {
+    "armor": "none (Unarmored Defense)",
+    "weapons": "Simple weapons; Light martial melee",
+    "tools": "Herbalism Kit (Hermit); one Artisan's Tool or Instrument (Monk)"
+  },
+  "martialArts": { "die": "1d6", "unarmedStrikeDamage": "1d6 + DEX" },
+  "features": [
+    "Unarmored Defense",
+    "Martial Arts",
+    "Dexterous Attacks",
+    "Unarmored Movement (+10 ft)",
+    "Focus: Flurry of Blows, Patient Defense, Step of the Wind",
+    "Uncanny Metabolism",
+    "Deflect Attacks",
+    "Open Hand Technique (Addle / Push / Topple)",
+    "Relentless Endurance (Orc)",
+    "Adrenaline Rush (Orc)",
+    "Darkvision (Orc)"
+  ],
+  "feats": ["Healer"],
+  "originBonus": "Hermit: CON / WIS / CHA +1 each; Healer feat",
+  "equipment": {
+    "monk": "Spear; 5 Daggers; Artisan's Tools or Instrument; Explorer's Pack; 11 GP",
+    "hermit": "Quarterstaff; Herbalism Kit; Bedroll; Book (philosophy); Lamp; Oil x3; Traveler's Clothes; 16 GP"
+  },
+  "scalesWithLevel": {
+    "proficiencyBonus": "+2 (lvl 1-4) -> +3 (5-8) -> +4 (9-12) -> +5 (13-16) -> +6 (17-20)",
+    "focusPoints": "= Monk level (3 now)",
+    "martialArtsDie": "1d6 -> 1d8 (lvl 5) -> 1d10 (lvl 10) -> 1d12 (lvl 17)",
+    "unarmoredMovement": "+10 now -> +15 (lvl 6) -> +20 (lvl 10) -> +25 (lvl 14) -> +30 (lvl 18)",
+    "deflectAttacks": "reduce 1d10 + DEX + Monk level",
+    "uncannyMetabolism": "heal 1d6 + Monk level",
+    "pbDrivenDCs": "featureSaveDC and grappleShoveDC rise with proficiency bonus"
+  }
+}

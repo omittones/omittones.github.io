@@ -1,120 +1,117 @@
 # PLAN — Fight Flow layer for Stick
 
+> **Revision 2 (2026-09-11).** Transforms the shipped v1 fight layer per the
+> rev2 `DESIGN.md`: reorder the page, add initiative + Attack/Damage + "When
+> Attacked" how-to, consolidate action feats into the fight layer, and move the
+> level-up note to `CLAUDE.md`. v1's phases are all done; these phases describe
+> the v1 → v2 transformation.
+
 ## Mechanism (chosen, verified against DESIGN's constraints)
 
-- **Pure static markup inserted into `index.html`**, no new JS — satisfies the
-  "works on Kindle e-ink" and "no new JS" constraints. Death-save /
-  used-this-turn boxes are drawn as static CSS squares (pencil-tracked).
-- **Placement:** new `Fight flow` section between the Quick Stats divider
-  (`index.html:877`) and the `.layout` grid (`:879`) — "immediately after Quick
-  Stats, above Counters/Skills."
-- **Reuse existing components:** `.feat-card` (trigger cards),
-  `.rule-list`/`.rule-item` (checklists),
-  `.badge`/`badge-fp`/`badge-free`/`badge-rest` (tags), `.turn-grid` idiom.
-  Minimal new CSS helpers built **only from existing tokens** (no new
-  fonts/colors/paradigms): `.ff-src` (inline derivation sublabel, styled like
-  `.stat-sub`, `var(--t3)`), `.ff-box` (static square tracker, styled like
-  `.adr-pip` but square), `.ff-collision` (compact "pick ONE" list). All added
-  to the `html.print-bw` overrides.
-- **Sourcing:** every number carries an inline `.ff-src` breakdown (e.g.
-  `1d10 + 6 — DEX 3 + Monk lvl 3`).
+- **Pure static markup in `index.html`**, no new JS. Reuse the classes already
+  defined in v1 (`.ff-src`, `.ff-box`, `.ff-collision`) and existing components
+  (`.feat-card`, `.rule-list`/`.rule-item`, badges). No new CSS expected.
+- **Page reorder:** move the whole `Fight flow` section (currently between the
+  Quick Stats divider and `.layout`) to sit **after** the `.layout` close, above
+  "Usable traits & feats".
+- **Order of operations:** add the new homes for absorbed content (Bonus Action
+  detail, "When Attacked") **before** removing the old feat cards, so no detail
+  is lost mid-flow.
 
-### Verified figures (PHB 2024 = source of truth)
+### Verified figures (PHB 2024 = source of truth; all already on the sheet)
 
-- Uncanny Metabolism: regain ALL Focus + heal **1d6 + 3** (Monk lvl 3 + die).
-  Existing feat card's `1d6+2` is a PHB error — corrected in this work.
-- Deflect Attacks: reduce **1d10 + 6** (DEX 3 + Monk lvl 3); redirect
-  **2d6 + 3** on a **DEX save DC 14** (Focus-feature DC = 8 + WIS 4 + PB 2).
-- Grapple / Shove (Unarmed Strike option, DEX via Dexterous Attacks):
-  **DC 13** (8 + DEX 3 + PB 2) — target STR *or* DEX save (they choose). Shove =
-  push 5 ft **or** knock prone. Only if target ≤ 1 size larger. **Note the 13
-  is distinct from the Focus-feature DC 14.**
-- Bonus Unarmed Strike: "make an Unarmed Strike as a Bonus Action" — **no**
-  "after the Attack action" prerequisite in 2024; **uses your one Bonus Action**
-  (0 FP). Competes with Flurry / Patient Defense / Step of the Wind /
-  Adrenaline Rush.
-- Death saves: 3 ✓ / 3 ✗; nat 1 = 2 failures, nat 20 = 1 HP; damage at 0 HP =
-  1 failure (2 if crit). Stabilize = **DC 10 WIS (Medicine)** via Help action.
-- Relentless Endurance: drop to 1 HP instead of 0; 1×/long rest.
+- **Initiative:** `d20 + 3` — DEX 3 (no proficiency to initiative).
+- **Attack roll:** `d20 + 5` — DEX 3 + PB 2.
+- **Damage:** `1d6 + 3` — Martial Arts die 1d6 + DEX 3.
+- **AC:** `17` — 10 + DEX 3 + WIS 4.
+- Carried from v1 (unchanged): Uncanny 1d6+3; Deflect reduce 1d10+6, redirect
+  DEX save DC 14 / 2d6+3 (DEX 3); Grapple/Shove DC 13 (8 + DEX 3 + PB 2);
+  Stabilize DC 10 WIS (Medicine +6).
 
 ## Verification approach
 
-Static HTML with no build → verify with **runnable `grep` assertions** (numbers
-landed, old errors gone) plus a **manual render check** (Chrome DevTools at
-390px = no horizontal scroll; print-preview Color + B&W). Node 16 is present but
-there are no deps, so no headless tooling is assumed. All `grep` commands are
-run from the `dnd/` directory against `index.html`.
+Static HTML, no build → runnable `grep` assertions (content landed, old content
+gone, no duplication) plus a manual render check (Chrome 390px = no horizontal
+scroll; print-preview Color + B&W). All `grep` run from `dnd/` against
+`index.html` (and `CLAUDE.md` in Phase 4).
 
 ## Phases
 
-### Phase 1 — Scaffold + shared CSS
+### Phase 1 — Page reorder + Quick Stats initiative
 
-Insert the `Fight flow` section shell (label + container + trailing divider) at
-the placement above; add `.ff-src`, `.ff-box`, `.ff-collision` in the token
-block and their `html.print-bw` overrides.
+Move the entire `Fight flow` block to just after the `.layout` close, before
+"Usable traits & feats". Add an **Initiative** stat-card to the Quick Stats grid
+(`d20 + 3`, source `DEX 3`).
 
-- Deliverable: empty-but-placed section, new classes defined + print-safe.
+- Deliverable: Fight flow relocated below the Attributes/Counters/Skills layout;
+  Initiative in Quick Stats.
 - Verify:
-  - `grep -c '>Fight flow<' index.html` → `1`
-  - Section sits before `<div class="layout">` (confirm via `grep -n` line
-    order: `Fight flow` label line < `class="layout"` line).
-  - `.ff-box` defined in both base CSS and the `html.print-bw` block.
-  - Open `index.html` in a browser — renders, no console errors.
+  - `grep -c '>Fight flow<' index.html` → `1` (moved, not duplicated).
+  - Line order: `grep -n 'class="layout"'` line **<** `grep -n '>Fight flow<'`
+    line.
+  - `grep -q 'Initiative' index.html` and `grep -q 'd20 + 3' index.html` with a
+    `DEX 3` source in the same card.
 
-### Phase 2 — Top-of-turn traps (items 1 & 2) + wording reconciliation
+### Phase 2 — "Your action" card (Attack / Damage + Grapple/Shove)
 
-Start-of-combat checklist (roll initiative → Uncanny Metabolism **all FP +
-1d6+3**, assess/position). Bonus-action **"pick ONE"** card listing all
-competitors: free Unarmed Strike (0 FP), Flurry (1 FP), Patient Defense, Step of
-the Wind, Adrenaline Rush. Fix Key-rules line: drop "after the Attack action",
-clarify it **uses your one Bonus Action (0 FP)**. Correct existing Uncanny feat
-card `1d6+2 → 1d6+3`.
+New card placed after "When combat starts": how to make an **Attack roll**
+(`d20 + 5`, sourced DEX 3 + PB 2) and roll **Damage** (`1d6 + 3`, sourced). Fold
+the existing standalone Grapple/Shove card into this card (DC 13).
+
+- Deliverable: single "Your action" card covering Attack, Damage, Grapple/Shove.
+- Verify:
+  - `grep -q 'd20 + 5' index.html` (attack roll present in the fight layer).
+  - Damage `1d6 + 3` present with a source in this card.
+  - `grep -c 'Grapple / Shove' index.html` → `1` (folded in, old card removed —
+    no duplicate).
+
+### Phase 3 — Bonus Action absorbs feats + "When Attacked" card
+
+Bonus-action pick-ONE card carries the FP costs and free-vs-1-FP detail for
+Flurry (1 FP) / Patient Defense (free or 1 FP) / Step of the Wind (free or 1 FP)
+/ Adrenaline Rush (Short Rest 2×) / 0-FP Unarmed Strike. New **When Attacked**
+card after it: read the incoming attack vs **AC 17** (sourced 10 + DEX 3 + WIS
+4); Reaction options (one reaction/round): Deflect Attacks (reduce 1d10+6;
+redirect DEX save DC 14 / 2d6+3), Opportunity Attack.
+
+- Deliverable: enriched Bonus Action card; new When Attacked card.
+- Verify:
+  - `grep -q 'When Attacked' index.html`.
+  - `AC` read present with `17` and its source in the When Attacked card.
+  - Deflect Attacks + Opportunity Attack both present; `grep -q 'one reaction'`.
+  - Pick-ONE card still lists all 5 options, each with its FP cost.
+
+### Phase 4 — Prune duplicates + level-up note to CLAUDE.md
+
+Remove the five action cards now living in the fight layer — Flurry of Blows,
+Patient Defense, Step of the Wind, Adrenaline Rush, Deflect Attacks — from
+"Usable traits & feats" (keep Open Hand technique, Uncanny Metabolism,
+Relentless Endurance, Healer feat). Remove the visible "Level-up modifiers"
+card. Create `dnd/CLAUDE.md` with the AI-facing level-up maintenance note.
+
+- Deliverable: de-duplicated "Usable traits & feats"; no level-up card on sheet;
+  `CLAUDE.md` holding the maintenance note.
+- Verify:
+  - In "Usable traits & feats", none of the 5 removed feat titles remain (spot
+    via `grep -n` for each title, confirm only the fight-layer occurrences).
+  - `! grep -q 'Level-up modifiers' index.html`.
+  - `grep -q 'Level-up' CLAUDE.md` and the note lists which numbers change and
+    where they live on the sheet.
+
+### Phase 5 — Sourcing pass + cross-cutting checks
+
+Confirm every number in the fight layer and the new Initiative entry carries an
+`.ff-src`; no bare figures. Level-up note absent from the sheet, present in
+`CLAUDE.md`.
 
 - Verify:
-  - `grep -q '1d6 + 3' index.html` (present)
-  - `! grep -q '1d6 + 2' index.html` (old error gone everywhere)
-  - Pick-ONE card lists all 5 Bonus-Action options.
-  - `! grep -q 'always free' index.html` (misleading wording gone).
+  - No bare figures in the section (visual scan against a `grep` of `ff-src`).
+  - `<div` count = `</div>` count (structure intact).
+  - Manual: Chrome 390px — no horizontal scroll; print-preview Color + B&W both
+    legible; section length acceptable on phone.
 
-### Phase 3 — Off-turn & options (items 3 & 4)
+## Out-of-scope (from DESIGN rev2)
 
-Reaction strip (one reaction/round; Deflect Attacks; Opportunity Attack).
-Grapple/Shove card — replaces an attack, **DC 13**, Shove = push 5 ft *or*
-prone, note ≤ 1 size larger.
-
-- Verify:
-  - `grep -q 'one reaction' index.html`
-  - Both Deflect Attacks + Opportunity Attack present in the reaction strip.
-  - `grep -q 'DC 13' index.html` with `DEX 3 + PB 2` source shown.
-
-### Phase 4 — Emergencies & reference (items 5 & 6)
-
-Down/death flow: Relentless Endurance ("drop to 1 — check first, 1×/long rest")
-→ death-save tracker 3 ✓ / 3 ✗ static boxes → Stabilize **DC 10 WIS
-(Medicine +6)**. Conditions subset (effect-on-rolls): prone, grappled,
-restrained, frightened, poisoned, stunned, incapacitated.
-
-- Verify:
-  - `grep -q 'DC 10' index.html` and `grep -q 'Medicine' index.html`
-  - 6 death-save `ff-box` squares present in the down/death block.
-  - Each of the 7 condition names present in the new section.
-
-### Phase 5 — Sourcing pass, level-up note & cross-cutting checks (item 7)
-
-Confirm every number in the new layer has a `.ff-src`; add "Level-up modifiers"
-note (what changes and where: Martial Arts die, Focus = level, Deflect
-1d10+DEX+level, Uncanny level+die, Unarmored Movement, PB-driven DCs).
-
-- Verify:
-  - No bare figures in the section (visual scan against a `grep` of `ff-src`
-    occurrences).
-  - Level-up note present.
-  - Manual: Chrome at 390px — no horizontal scroll; print-preview Color + B&W
-    both legible; section length acceptable on phone.
-
-## Out-of-scope (unchanged from DESIGN)
-
-No changes to interactive counters; no separate fight-mode page; no full
-compendium; nothing past level 3. Two authorized exceptions (confirmed with
-user): correcting the existing Uncanny feat card `1d6+2 → 1d6+3` and the
-Key-rules Bonus-Action "always free" wording.
+Key rules, Combat turn templates, Traits reference, Starting equipment, and the
+interactive counters all stay unchanged. No separate fight-mode page. Nothing
+past level 3.

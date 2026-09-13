@@ -1,6 +1,6 @@
 ---
 name: dpi-flow
-description: Take any task through Design → Plan → Implement in strict order, with hard gates between steps. Use when starting a non-trivial piece of work, when the user says "design", "plan", "implement", references the DPI workflow, or mentions DESIGN.md / PLAN.md / TASKS.md, and when resuming an implementation that was stopped partway. Enforces: no PLAN.md until DESIGN.md is saved; no code until PLAN.md is saved; implementation runs from a fresh context with only the saved docs as input, tracking progress in TASKS.md so it can be stopped and resumed at any point.
+description: Take any task through Design → Plan → Implement in strict order, with hard gates between steps. Use when starting a non-trivial piece of work, when the user says "design", "plan", "implement", references the DPI workflow, or mentions DESIGN.md / PLAN.md / TASKS.md, and when resuming an implementation that was stopped partway. Enforces: no PLAN.md until DESIGN.md is saved; no code until PLAN.md is saved; after TASKS.md is written (with the plan's key decisions captured) the planning context must be cleared (mandatory /clear) so implementation runs cold from only the saved docs; progress tracked in TASKS.md so it can be stopped and resumed at any point.
 ---
 
 # DPI Flow (Design → Plan → Implement)
@@ -19,7 +19,8 @@ Never put these at the repo root. The gates below are driven by what's on disk, 
 
 1. **No `PLAN.md` until `DESIGN.md` is saved.**
 2. **No product code until `PLAN.md` is saved.**
-3. If asked to build while still in Design or Plan, refuse: say **"stay in design"** (or "stay in plan"). Don't write code to be helpful.
+3. **No product code in the context that produced the docs.** Once `TASKS.md` is written, the Design/Plan step is over: **stop and require a `/clear`.** Implementation runs only from a fresh context whose sole inputs are the saved docs. If you designed or planned this task in the current context — even partially — you may not implement in it, no matter how ready the code feels. See **Step 2.5**.
+4. If asked to build while still in Design or Plan, refuse: say **"stay in design"** (or "stay in plan"). Don't write code to be helpful.
 
 ## Which step are we on? (confirm, don't infer)
 
@@ -57,6 +58,7 @@ Only after `DESIGN.md` is saved.
 3. Each phase has **tasks, a deliverable, and a verification method** — how you'll prove it works, not "looks right." Write verification as **a command someone can run** (`pnpm test src/foo`, `curl …`) wherever the phase allows one; a resumed run re-runs these, and prose criteria can't be re-run cheaply.
 4. **Present the plan draft for review before writing anything to disk.** Ask the user to review it — e.g. "If everything looks OK, tell me and I'll save the file." Only write `PLAN.md` once they approve; if they ask for changes, revise the draft and ask again. Still no product code.
 5. Once `PLAN.md` is saved, **derive `TASKS.md` from it** (see below) and show it. This is a mechanical transcription, not a second round of design — it needs no separate approval, but say what you generated.
+6. **Capture what a cold context can't re-derive — at a high level.** After the mandatory `/clear` (Step 2.5) the implementing context starts cold with only the docs. It can re-read the codebase for file paths and anchors — that's cheap, so don't transcribe it. What it *can't* recover is what lived only in this conversation: the decisions behind the plan, research findings, and gotchas you hit. Note those briefly in `TASKS.md`'s **How** — a sentence or two per phase to orient the build, not step-by-step edits. Don't repeat what's already in `PLAN.md` or discoverable by reading the code.
 
 ### `TASKS.md` — the execution ledger
 
@@ -65,23 +67,36 @@ Only after `DESIGN.md` is saved.
 One entry per plan phase, in plan order:
 
 ```markdown
-## Phase 2 — Offer lookup endpoint  [in-progress]
+## Phase 2 — Offer lookup endpoint  [todo]
 
 - Verify: `npm test -- offers.spec.ts`
+- How: reuse the existing `offerRepo.list()` — don't add a repo method; the
+  pagination cursor is base64 of the last row's `id`.
 - Files:
-  - [x] `src/handlers/offers.ts` — added `GET /offers` handler
-  - [ ] `src/handlers/offers.spec.ts`
-- Left off: handler returns 200; pagination not wired yet.
+  - [ ] `src/handlers/offers.ts` — new `GET /offers` handler
+  - [ ] `src/handlers/offers.spec.ts` — cases: empty, one page, paginated
+- Left off: (only once in-progress)
 ```
 
 - **Status token** on the heading: `[todo]`, `[in-progress]`, `[done]`. All start `[todo]`.
 - **Verify**: copied from the phase's verification method in `PLAN.md`.
+- **How**: a brief, high-level orientation for the phase (Step 2 item 6) — the approach plus any non-obvious decision, research finding, or gotcha a cold context couldn't recover from the code alone. A sentence or two, not step-by-step edits or line anchors (those are re-found by reading the code). Skip it when the phase is obvious from `PLAN.md`.
 - **Files**: concrete paths, ticked as each is finished. Paths the plan named up front go in at generation time; ones discovered while building get appended.
 - **Left off**: one line, only on the `[in-progress]` phase — overwritten each time, never accumulated. Delete it when the phase goes `[done]`.
 
+## Step 2.5 — Freeze & hand off (mandatory `/clear`)
+
+This is a hard gate, not a suggestion (gate 3). When `DESIGN.md`, `PLAN.md`, and `TASKS.md` are all saved and each phase's **How** captures what the conversation knows and the docs don't (Step 2 item 6), the planning context is done. **Do not start implementing in it** — the design conversation biases and clutters the build, which is the whole reason implementation runs cold.
+
+1. **Confirm the docs capture the decisions.** Re-read `TASKS.md` and ask: given the docs *and* the codebase it can read, could a cold context build every phase — i.e., is every decision and finding from this conversation captured, even if the exact edits aren't? If something important lives only here, add it to the phase's **How** now — this is your last chance before it's lost.
+2. **Stop and tell the user to `/clear`.** Say plainly that Design/Plan is complete, the docs are saved, and implementation must begin in a fresh context. Give them the exact next move — e.g. "Run `/clear`, then re-invoke `/dpi-flow` (or say 'implement `<task-slug>`') and I'll pick up from `TASKS.md`." **Then end your turn.** Do not touch product code.
+3. **Do not rationalize skipping this.** "It's a small change," "I already know the file," "the user said go" — none of these lift the gate. The user saying "go" at the end of Plan means *save the docs and hand off*, not *implement now*. Only an explicit, specific instruction to implement in the current context without clearing overrides it — and if you take that path, say you're doing so and why.
+
 ## Step 3 — Implement
 
-**Start from a fresh context** — the saved docs in `features/<task-slug>/` are the only inputs: `PLAN.md` for what to build, `DESIGN.md` for the goal and constraints it has to satisfy, `TASKS.md` for what's already done. `PLAN.md` still wins on anything concrete. What must not carry over is the design *conversation* — if it's still in context, tell the user to `/clear` and re-invoke from those files.
+**Runs only in a fresh context** (post-`/clear`, per Step 2.5). The saved docs in `features/<task-slug>/` are the only inputs: `PLAN.md` for what to build, `DESIGN.md` for the goal and constraints it has to satisfy, `TASKS.md` for what's already done **and the How detail for each phase**. `PLAN.md` still wins on anything concrete.
+
+**Before building, verify the handoff actually happened.** If the Design or Plan *conversation* for this task is present in your context — you drafted the docs, asked the design questions, or explored the codebase for the plan earlier in this same session — then Step 2.5's `/clear` was skipped. Stop and require it now; do not implement. A cold context is one where the docs are something you *read*, not something you *remember writing*.
 
 If `TASKS.md` is missing (plan predates it, or it was never generated), generate it from `PLAN.md` first — all phases `[todo]` — before touching code.
 
@@ -148,6 +163,7 @@ Then show the result, plus one moment where Design or Plan saved a correction ro
 - [ ] Current step was confirmed with the user before any work started — not inferred from what's on disk alone.
 - [ ] `DESIGN.md` saved before any code — goal, key inputs, risks, constraints (+ audience/hypothesis/diagram where useful); ≥2 concepts explored first; every open design question was put to the user (options + custom), not assumed; constraints stated, not mechanisms.
 - [ ] `PLAN.md` saved before implementation — concrete mechanism researched and chosen against Design's constraints, phases, tasks, verification criteria; runnable `Verify` commands where the phase allows one.
-- [ ] Implementation started from a fresh context whose only inputs were the saved docs — not the design conversation; each phase checked against its own criteria.
+- [ ] Each phase's **How** captured the decisions and findings a cold context couldn't re-derive from the code — briefly; nothing important was left only in the planning conversation.
+- [ ] The planning context was cleared before implementation (Step 2.5 `/clear`) — implementation did not begin in the context that produced the docs; each phase checked against its own criteria.
 - [ ] `TASKS.md` tracked progress throughout: statuses written before the work, not after; `[done]` only on a passing `Verify`; `PLAN.md` never edited during implementation, and reconciled to `TASKS.md` whenever it was re-saved.
 - [ ] Every resume started from `TASKS.md` plus `git status` — not from re-reading the codebase — and the user's own changes were surfaced, not silently overwritten.

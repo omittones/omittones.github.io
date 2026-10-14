@@ -20,11 +20,10 @@
   },
   "savingThrowProficiencies": ["STR", "DEX"],
   "hitPoints": {
-    "max": 21,
+    "max": 31,
     "hitDie": "d8",
     "hitDiceTotal": 4,
-    "breakdown": "lvl1 8 + CON 3; lvl2 roll + CON 3; lvl3 hit die rolled 1 + CON 3 = 21",
-    "pendingLevel4": "still owed one d8 + CON 3; not yet rolled/applied to max"
+    "breakdown": "lvl1 8 + CON 3; lvl2 roll + CON 3; lvl3 hit die rolled 1 + CON 3 = 21; lvl4 hit die rolled 7 + CON 3 = 31"
   },
   "combat": {
     "armorClass": { "value": 18, "formula": "10 + DEX 4 + WIS 4 (Unarmored Defense)" },
